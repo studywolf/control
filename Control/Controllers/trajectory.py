@@ -16,7 +16,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 import gc 
-import osc 
 import shell
 
 import numpy as np
@@ -82,10 +81,7 @@ class Shell(shell.Shell):
             else:
                 self.pen_down = True
 
-            if isinstance(self.controller, osc.Control):
-                pos = arm.position(ee_only=True)
-            elif isinstance(self.controller, gc.Control):
-                pos = arm.q
+            pos = arm.q
 
             pos_des = self.gain * (self.controller.target - pos)
             self.u = self.controller.control(arm, pos_des) 

@@ -15,30 +15,18 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from Arms.three_link.arm import Arm3Link as Arm3
-
 import Controllers.dmp as DMP
 import Controllers.gc as GC
 
 import csv
 import numpy as np
 
-def Task(arm_class, control_type):
+def Task():
     """
     This task sets up the arm to move like a leg walking.
 
-    arm_class Arm: the arm class chosen for this task
     control_class Control: the controller class chosen for this task
     """
-
-    if control_type not in (DMP.Shell, GC.Control):
-        raise Exception('System must use generalized coordinates control '\
-                        '(gc) or dynamic movement primitives (dmp) '\
-                        'for walking task.')
-
-    if not issubclass(arm_class, Arm3):
-        raise Exception('System must use 3 link arm (arm3) for the '\
-                        'walking task')
 
     #--------------------------------
     # set up the rhythmic trajectory that imitates leg walking
@@ -78,7 +66,7 @@ def Task(arm_class, control_type):
                     'bfs':1000, # how many basis function per DMP
                     'gain':100, # pd gain for trajectory following
                     'pattern':'rhythmic', # type of DMP to use
-                    'tau':.1, # tau is the time scaling term
+                    'tau':1, # tau is the time scaling term
                     'trajectory':trajectory.T,} 
 
     runner_pars = {'box':[-5,5,-5,5],

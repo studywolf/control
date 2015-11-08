@@ -18,10 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from ..Arm import Arm
 
 import py3LinkArm 
-import py3LinkArm_damping
-import py3LinkArm_gravity
-import py3LinkArm_gravity_damping 
-import py3LinkArm_smallmass 
 
 import numpy as np
 
@@ -33,11 +29,7 @@ class Arm3Link(Arm):
         self.DOF = 3
         Arm.__init__(self, **kwargs)
 
-        pyArm = {None:py3LinkArm,
-                    'damping':py3LinkArm_damping,
-                    'gravity':py3LinkArm_gravity,
-                    'gravity_damping':py3LinkArm_gravity_damping,
-                    'smallmass':py3LinkArm_smallmass}[self.options]
+        pyArm = py3LinkArm
 
         # length of arm links
         self.l1 = 2.0; self.l2 = 1.2; self.l3 = .7

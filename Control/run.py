@@ -13,90 +13,26 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-Usage:
-    run ARM CONTROL TASK [options]
-
-Arguments: 
-    ARM     the arm to control
-    CONTROL the controller to use 
-    TASK    the task to perform
-
-Options:
-    --arm_options=OPTIONS   specify options to apply to arm sim 
-                            only valid for arm3, choices are:
-                            (damping, gravity, gravity_damping, smallmass)
-    --use_pygame=PYGAME     specify using pygame for visualization
-    --video=VIDPARS  (title, num_frames) [default:('vid.mp4',100)]
-
 '''
 
-from Arms.one_link.arm import Arm1Link as Arm1
-from Arms.one_link.arm_python import Arm1Link as Arm1Python
-from Arms.two_link.arm import Arm2Link as Arm2
-from Arms.two_link.arm_python import Arm2Link as Arm2Python
 from Arms.three_link.arm import Arm3Link as Arm3
 
 import Controllers.dmp as dmp 
 import Controllers.gc as gc 
-import Controllers.lqr as lqr 
-import Controllers.osc as osc 
-import Controllers.trace as trace
 
-import Tasks.follow_mouse as follow_mouse
-import Tasks.random_movements as random_movements
-import Tasks.reach as reach
-import Tasks.write_numbers as write_numbers
-import Tasks.write_words as write_words
+from sim_and_plot import Runner
 import Tasks.walk as walk
 
-from docopt import docopt
 import numpy as np
 
-dt = 1e-4
-args = docopt(__doc__)
+dt = 1e-3
 
-# get and instantiate the chosen arm
-arm_class = {'arm1':Arm1,
-             'arm1_python':Arm1Python,
-             'arm2':Arm2,
-             'arm2_python':Arm2Python,
-             'arm3':Arm3}[args['ARM']]
-arm = arm_class(dt=dt, options=args['--arm_options'])
-
-# set the initial position of the arm
-if arm.DOF == 3: 
-    initial_angles = [np.pi/5.5, np.pi/1.7, np.pi/6.]
-else:
-    initial_angles = [0.51591773, 1.96693463][:arm.DOF]
-arm.reset(q=initial_angles)
-
-# get the chosen controller class
-control_class = {'dmp':dmp.Shell,
-           'gc':gc.Control,
-           'lqr':lqr.Control,
-           'osc':osc.Control,
-           'trace':trace.Shell}[args['CONTROL']]
-
-# get the chosen task class
-task = {'follow':follow_mouse.Task,
-        'random':random_movements.Task,
-        'reach':reach.Task,
-        'write_numbers':write_numbers.Task,
-        'write_words':write_words.Task,
-        'walk':walk.Task}[args['TASK']]
-
-# instantiate the controller for the chosen task
+# instantiate the controller for the walk task
 # and get the sim_and_plot parameters 
-control_shell, runner_pars = task(arm_class, control_class)
-
-# set up simulate and plot system
-if args['--use_pygame'] is not None:
-    from sim_and_plot_pygame import Runner
-else:
-    from sim_and_plot import Runner
+control_shell, runner_pars = walk.Task()
+arm = Arm3(dt=dt)
 
 runner = Runner(dt=dt, **runner_pars)
 
-runner.run(arm=arm, control_shell=control_shell, video=args['--video'])
+runner.run(arm=arm, control_shell=control_shell)
 runner.show()
