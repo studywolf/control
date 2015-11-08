@@ -48,7 +48,6 @@ import Tasks.random_movements as random_movements
 import Tasks.reach as reach
 import Tasks.write_numbers as write_numbers
 import Tasks.write_words as write_words
-import Tasks.walk as walk
 
 from docopt import docopt
 import numpy as np
@@ -84,7 +83,7 @@ task = {'follow':follow_mouse.Task,
         'reach':reach.Task,
         'write_numbers':write_numbers.Task,
         'write_words':write_words.Task,
-        'walk':walk.Task}[args['TASK']]
+        }[args['TASK']]
 
 # instantiate the controller for the chosen task
 # and get the sim_and_plot parameters 
