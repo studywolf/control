@@ -191,16 +191,14 @@ class Arm3Link(Arm):
 
         return Mq
 
-    def position(self, q=None, ee_only=False, rotate=0.0):
+    def position(self, q=None, ee_only=False):
         """Compute x,y position of the hand
 
         q np.array: a set of angles to return positions for
         ee_only boolean: only return the (x,y) of the end-effector
-        rotate float: how much to rotate the first joint by
         """
         if q is None: q0 = self.q[0]; q1 = self.q[1]; q2 = self.q[2]
         else: q0 = q[0]; q1 = q[1]; q2 = q[2]
-        q0 += rotate
 
         x = np.cumsum([0,
                        self.l1 * np.cos(q0),

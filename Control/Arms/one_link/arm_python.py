@@ -97,11 +97,10 @@ class Arm1Link(Arm):
         
         return Mq
 
-    def position(self, q=None, ee_only=False, rotate=0.0):
+    def position(self, q=None, ee_only=False):
         """Compute x,y position of the hand"""
         if q is None: q0 = self.q[0]
         else: q0 = q[0]
-        q0 += rotate
 
         x = np.cumsum([0,
                        self.l1 * np.cos(q0)])

@@ -31,7 +31,7 @@ class Runner:
     """
     def __init__(self, title='', dt=1e-4, control_steps=10, 
                        display_steps=1, t_target=1.0, 
-                       seed=1, box=[-.5,.5,-.1,1], rotate=0.0,
+                       seed=1, box=[-.5,.5,-.1,1], 
                        control_type='', trajectory=None,
                        infinite_trail=False, mouse_control=False):
         self.dt = dt
@@ -44,7 +44,6 @@ class Runner:
         self.control_type = control_type 
         self.infinite_trail = infinite_trail
         self.mouse_control = mouse_control
-        self.rotate = rotate
         self.title = title
 
         self.sim_step = 0
@@ -152,13 +151,13 @@ class Runner:
             self.sim_step +=1
         
         # update figure
-        self.arm_line.set_data(*self.arm.position(rotate=self.rotate))
+        self.arm_line.set_data(*self.arm.position())
         self.info.set_text(self.make_info_text())
         self.trail.set_data(self.trail_data[:,0], self.trail_data[:,1])
         if self.target is not None:
             if isinstance(self.shell.controller, GC.Control):
                 # convert to plottable form if necessary
-                target = self.arm.position(q=self.target, rotate=self.rotate)
+                target = self.arm.position(q=self.target)
             else:
                 target = self.target
             self.target_line.set_data(target)
