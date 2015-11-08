@@ -52,7 +52,7 @@ import Tasks.write_words as write_words
 from docopt import docopt
 import numpy as np
 
-dt = 1e-4
+dt = 1e-3
 args = docopt(__doc__)
 
 # get and instantiate the chosen arm

@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from Arms.one_link.arm import Arm1Link as Arm1
 from Arms.three_link.arm import Arm3Link as Arm3
 
+import Controllers.lqr as lqr
 import Controllers.osc as osc 
 import Controllers.shell as shell
 
@@ -32,7 +33,7 @@ def Task(arm_class, control_type):
     control_type Control: the controller class chosen for this task
     """
 
-    if not issubclass(control_type, osc.Control):
+    if not issubclass(control_type, (lqr.Control, osc.Control)):
         raise Exception('System must use osc for following mouse task.')
 
     if issubclass(arm_class, Arm1):

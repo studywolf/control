@@ -82,19 +82,11 @@ class Runner:
         # connect up mouse event if specified
         if self.mouse_control: 
             self.target = self.shell.controller.gen_target(arm)
-            # get pixel width of fig (-.2 for the padding)
-            self.fig_width = (fig.get_figwidth() - .2 \
-                                * fig.get_figwidth()) * fig.get_dpi()
+
             def move_target(event): 
-                # get mouse position and scale appropriately to convert to (x,y) 
-                target = ((np.array([event.x, event.y]) - .5 * fig.get_dpi()) /\
-                                self.fig_width) * \
-                                (self.box[1] - self.box[0]) + self.box[0]
-
-                # set target for the controller
                 self.target = \
-                    self.shell.controller.set_target_from_mouse(target)
-
+                    self.shell.controller.set_target_from_mouse(
+                            np.array([event.xdata, event.ydata]))
             # hook up function to mouse event
             fig.canvas.mpl_connect('motion_notify_event', move_target)
 
