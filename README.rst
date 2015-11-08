@@ -1,12 +1,9 @@
 ============================================
-Studywolf code blog
+Studywolf Control repo
 ============================================
 
-This repository serves to hold projects that I'm both working on 
-and have completed and presented on http://www.studywolf.com.
-
-Control repo
-============
+This is a repository to hold the code I've developed for simulating 
+control systems performing different benchmarking tasks. 
 
 Installation
 ------------
