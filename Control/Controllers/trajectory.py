@@ -72,7 +72,7 @@ class Shell(shell.Shell):
                 if self.num_seq >= self.num_seqs - 1:
                     # if we're finished the last DMP
                     self.done = True
-                    self.controller.target = [.3, 0]
+                    import sys; sys.exit()
                 else:
                     # else move on to the next DMP
                     self.not_at_start = True

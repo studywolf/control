@@ -15,7 +15,7 @@ cdef class pySim:
         param float dt: simulation timestep, must be < 1e-5
         param array params: MapleSim model internal parameters
         """
-        if params is not None: self.thisptr = new Sim(dt, &params[0])
+        if params: self.thisptr = new Sim(dt, &params[0])
         else: self.thisptr = new Sim(dt, NULL)
  
     def __dealloc__(self):

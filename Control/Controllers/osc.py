@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import control 
+import control
 
 import numpy as np
 
@@ -24,7 +24,7 @@ class Control(control.Control):
     A controller that implements operational space control.
     Controls the (x,y) position of a robotic arm end-effector.
     """
-    def __init__(self, null_control=False, **kwargs): 
+    def __init__(self, null_control=True, **kwargs): 
         """
         null_control boolean: apply second controller in null space or not
         """
@@ -34,9 +34,15 @@ class Control(control.Control):
         self.DOF = 2 # task space dimensionality 
         self.null_control = null_control
 
-    def check_distance(self, arm):
-        """Checks the distance to target"""
-        return np.sum(abs(arm.x - self.target))
+        if self.write_to_file is True:
+            from recorder import Recorder
+            # set up recorders
+            self.u_recorder = Recorder('control signal', self.task, 'osc')
+            self.xy_recorder = Recorder('end-effector position', self.task, 'osc')
+            self.dist_recorder = Recorder('distance from target', self.task, 'osc')
+            self.recorders = [self.u_recorder, 
+                            self.xy_recorder, 
+                            self.dist_recorder]
 
     def control(self, arm, x_des=None):
         """Generates a control signal to move the 
@@ -47,9 +53,6 @@ class Control(control.Control):
         x_des np.array: desired task-space force, 
                         system goes to self.target if None
         """
-
-        # get the Jacobian and system position for the end-effector
-        JEE = arm.gen_jacEE()
 
         # calculate desired end-effector acceleration
         if x_des is None:
@@ -63,13 +66,16 @@ class Control(control.Control):
         # calculate force 
         Fx = np.dot(Mx, x_des)
 
+        # calculate the Jacobian 
+        JEE = arm.gen_jacEE()
+        # tau = J^T * Fx + tau_grav, but gravity = 0
         # add in velocity compensation in GC space for stability
         self.u = np.dot(JEE.T, Fx).reshape(-1,) - np.dot(Mq, self.kv * arm.dq)
 
         # if null_control is selected and the task space has 
         # fewer DOFs than the arm, add a control signal in the 
         # null space to try to move the arm to its resting state
-        if self.null_control and self.DOF < arm.DOF: 
+        if self.null_control and self.DOF < len(arm.L): 
 
             # calculate our secondary control signal
             # calculated desired joint angle acceleration
@@ -82,18 +88,28 @@ class Control(control.Control):
 
             # calculate the null space filter
             Jdyn_inv = np.dot(Mx, np.dot(JEE, np.linalg.inv(Mq)))
-            null_filter = np.eye(arm.DOF) - np.dot(JEE.T, Jdyn_inv)
+            null_filter = np.eye(len(arm.L)) - np.dot(JEE.T, Jdyn_inv)
 
             null_signal = np.dot(null_filter, u_null).reshape(-1,)
 
             self.u += null_signal
 
+        if self.write_to_file is True:
+            # feed recorders their signals
+            self.u_recorder.record(0.0, self.u)
+            self.xy_recorder.record(0.0, self.x)
+            self.dist_recorder.record(0.0, self.target - self.x)
+ 
+        # add in any additional signals 
+        for addition in self.additions:
+            self.u += addition.generate(self.u, arm)
+           
         return self.u
 
     def gen_target(self, arm):
         """Generate a random target"""
-        gain = np.sum(arm.L) * 1.5
-        bias = -np.sum(arm.L) * .75
+        gain = np.sum(arm.L) * .75
+        bias = -np.sum(arm.L) * 0
         
         self.target = np.random.random(size=(2,)) * gain + bias
 

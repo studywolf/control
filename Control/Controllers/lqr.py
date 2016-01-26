@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2015 Travis DeWolf and Brent Komer
+Copyright (C) 2015 Brent Komer and Travis DeWolf
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,26 +18,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import control
 
 import numpy as np
-import scipy.linalg as spla
-
-from Arms.one_link.arm_python import Arm1Link as Arm1_python
-from Arms.one_link.arm import Arm1Link as Arm1
-from Arms.two_link.arm_python import Arm2Link as Arm2_python
-from Arms.two_link.arm import Arm2Link as Arm2
-from Arms.three_link.arm import Arm3Link as Arm3
+import scipy.linalg as sp_linalg
 
 class Control(control.Control):
     """
     A controller that implements operational space control.
     Controls the (x,y) position of a robotic arm end-effector.
     """
-    def __init__(self, solve_continuous=False, **kwargs): 
+    def __init__(self, solve_continuous=False, adaptation=None, **kwargs): 
 
         super(Control, self).__init__(**kwargs)
 
         self.DOF = 2 # task space dimensionality 
         self.u = None
         self.solve_continuous = solve_continuous
+        self.adaptation = adaptation
+
+        if self.write_to_file is True:
+            from recorder import Recorder
+            # set up recorders
+            self.u_recorder = Recorder('control signal', self.task, 'lqr')
+            self.xy_recorder = Recorder('end-effector position', self.task, 'lqr')
+            self.dist_recorder = Recorder('distance from target', self.task, 'lqr')
+            self.recorders = [self.u_recorder, 
+                            self.xy_recorder, 
+                            self.dist_recorder]
 
     def calc_derivs(self, x, u):
         eps = 0.00001  # finite difference epsilon
@@ -46,24 +51,18 @@ class Control(control.Control):
         x1 = np.tile(x, (self.arm.DOF*2,1)).T + np.eye(self.arm.DOF*2) * eps
         x2 = np.tile(x, (self.arm.DOF*2,1)).T - np.eye(self.arm.DOF*2) * eps
         uu = np.tile(u, (self.arm.DOF*2,1))
-        # need xdot, so subtract xx, since fn returns x(k+1)
-        f1 = self.fn_dyn(x1, uu)
-        f2 = self.fn_dyn(x2, uu)
+        f1 = self.plant_dynamics(x1, uu)
+        f2 = self.plant_dynamics(x2, uu)
         xdot_x = (f1 - f2) / 2 / eps
    
         xx = np.tile(x, (self.arm.DOF,1)).T 
         u1 = np.tile(u, (self.arm.DOF,1)) + np.eye(self.arm.DOF) * eps
         u2 = np.tile(u, (self.arm.DOF,1)) - np.eye(self.arm.DOF) * eps
-        # need xdot, so subtract xx, since fn returns x(k+1)
-        f1 = self.fn_dyn(xx, u1)
-        f2 = self.fn_dyn(xx, u2)
+        f1 = self.plant_dynamics(xx, u1)
+        f2 = self.plant_dynamics(xx, u2)
         xdot_u = (f1 - f2) / 2 / eps
 
         return xdot_x, xdot_u
-
-    def check_distance(self, arm):
-        """Checks the distance to target"""
-        return np.sum(abs(arm.x - self.target))
 
     def control(self, arm, x_des=None):
         """Generates a control signal to move the 
@@ -86,26 +85,43 @@ class Control(control.Control):
             self.x = arm.position(ee_only=True)
             x_des = self.x - self.target 
 
-        state = np.hstack([arm.q, arm.dq]) 
-        self.arm = arm.copy()
+        self.arm, state = self.copy_arm(arm)
         A, B = self.calc_derivs(state, self.u)
 
         if self.solve_continuous is True:
-            X = spla.solve_continuous_are(A, B, self.Q, self.R)
+            X = sp_linalg.solve_continuous_are(A, B, self.Q, self.R)
             K = np.dot(np.linalg.pinv(self.R), np.dot(B.T, X))
         else: 
-            X = spla.solve_discrete_are(A, B, self.Q, self.R)
+            X = sp_linalg.solve_discrete_are(A, B, self.Q, self.R)
             K = np.dot(np.linalg.pinv(self.R + np.dot(B.T, np.dot(X, B))), np.dot(B.T, np.dot(X, A)))
 
         # transform the command from end-effector space to joint space
-        J = arm.gen_jacEE()
+        J = self.arm.gen_jacEE()
+
         u = np.hstack([np.dot(J.T, x_des), arm.dq])
 
         self.u = -np.dot(K, u)
 
+        if self.write_to_file is True:
+            # feed recorders their signals
+            self.u_recorder.record(0.0, self.u)
+            self.xy_recorder.record(0.0, self.x)
+            self.dist_recorder.record(0.0, self.target - self.x)
+
         return self.u
  
-    def fn_dyn(self, x, u):
+    def copy_arm(self, real_arm):
+
+        # need to make a copy of the arm for simulation
+        arm = real_arm.__class__()
+        arm.dt = real_arm.dt
+
+        # reset arm position to x_0
+        arm.reset(q = real_arm.q, dq = real_arm.dq)
+
+        return arm, np.hstack([real_arm.q, real_arm.dq])
+
+    def plant_dynamics(self, x, u):
 
         if x.ndim == 1:
             x = x[:,None]
@@ -118,6 +134,8 @@ class Control(control.Control):
                           dq=x[self.arm.DOF:self.arm.DOF*2, ii])
 
             # apply the control signal
+            # TODO: should we be using a constant timestep here instead of arm.dt?
+            # to even things out when running at different dts? 
             self.arm.apply_torque(u[ii], self.arm.dt)
             # get the system state from the arm
             xnext[:,ii] = np.hstack([np.copy(self.arm.q), 
@@ -129,9 +147,8 @@ class Control(control.Control):
         return xnext
 
     def gen_target(self, arm):
-        """Generate a random target"""
-        gain = np.sum(arm.L) * 1.5
-        bias = -np.sum(arm.L) * .75
+        gain = np.sum(arm.L) * .75
+        bias = -np.sum(arm.L) * 0
         
         self.target = np.random.random(size=(2,)) * gain + bias
 

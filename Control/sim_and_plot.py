@@ -15,8 +15,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import Controllers.gc as GC
-
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import animation
@@ -29,9 +27,8 @@ class Runner:
     'xrange is not an iterator', make sure that you have 
     the most recent version of matplotlib, from their github.
     """
-    def __init__(self, title='', dt=1e-4, control_steps=10, 
+    def __init__(self, title='', dt=1e-3, control_steps=1, 
                        display_steps=1, t_target=1.0, 
-                       seed=1, box=[-.5,.5,-.1,1], 
                        control_type='', trajectory=None,
                        infinite_trail=False, mouse_control=False):
         self.dt = dt
@@ -40,7 +37,6 @@ class Runner:
         self.target_steps = int(t_target/float(dt*display_steps))
         self.trajectory = trajectory
 
-        self.box = box 
         self.control_type = control_type 
         self.infinite_trail = infinite_trail
         self.mouse_control = mouse_control
@@ -48,9 +44,22 @@ class Runner:
 
         self.sim_step = 0
         self.trail_index = 0
+
+        self.tau = None
         
-    def run(self, arm, control_shell, video=None, video_time=None):
+    def run(self, arm, control_shell, end_time=None):
+
+        self.end_time = end_time
+
         self.arm = arm
+        print arm.DOF 
+        if arm.DOF == 1:
+            box = [-1, 1, -.25, 1.5]
+        elif arm.DOF == 2:
+            box = [-.75, .75, -.25, 1.5]
+        elif arm.DOF == 3:
+            box = [-2, 2, -.5, 4]
+
         self.shell = control_shell
         
         fig = plt.figure(figsize=(5.1,5.1), dpi=None)
@@ -60,8 +69,8 @@ class Runner:
         fig.subplotpars.bottom=.1; fig.subplotpars.top=.9
 
         ax = fig.add_subplot(1, 1, 1, 
-                             xlim=(self.box[0], self.box[1]), 
-                             ylim=(self.box[2], self.box[3]))
+                             xlim=(box[0], box[1]), 
+                             ylim=(box[2], box[3]))
         ax.xaxis.grid(); ax.yaxis.grid()
         # make it a square plot
         ax.set_aspect(1) 
@@ -70,8 +79,8 @@ class Runner:
         self.trail, = ax.plot([], [], color='#888888', lw=3)
         self.arm_line, = ax.plot([], [], 'o-', mew=4, color='b', lw=5)
         self.target_line, = ax.plot([], [], 'r-x', mew=4)
-        self.info = ax.text(self.box[0]+abs(.1*self.box[0]), \
-                            self.box[3]-abs(.1*self.box[3]), \
+        self.info = ax.text(box[0]+abs(.1*box[0]), \
+                            box[3]-abs(.1*box[3]), \
                             '', va='top')
         self.trail_data = np.ones((self.target_steps, 2), \
                                    dtype='float') * np.NAN
@@ -82,37 +91,34 @@ class Runner:
         # connect up mouse event if specified
         if self.mouse_control: 
             self.target = self.shell.controller.gen_target(arm)
-
+            # get pixel width of fig (-.2 for the padding)
+            self.fig_width = (fig.get_figwidth() - .2 \
+                                * fig.get_figwidth()) * fig.get_dpi()
             def move_target(event): 
-                self.target = \
-                    self.shell.controller.set_target_from_mouse(
-                            np.array([event.xdata, event.ydata]))
+                # get mouse position and scale appropriately to convert to (x,y) 
+                if event.xdata is not None:
+                    self.target = np.array([event.xdata, event.ydata])
+                    # set target for the controller
+                    self.shell.controller.target = self.target
+
             # hook up function to mouse event
             fig.canvas.mpl_connect('motion_notify_event', move_target)
 
-        if video_time is None:
-            frames = 50
-        else:
-            frames = int(video_time/(self.dt*self.display_steps))
+        frames = 50
 
         anim = animation.FuncAnimation(fig, self.anim_animate, 
-                   init_func=self.anim_init, frames=50, interval=0, blit=True)
-        
-        if video is not None:
-            anim.save(video, fps=1.0/(self.dt*self.display_steps), dpi=200)
+                   init_func=self.anim_init, frames=5000, interval=0, blit=True)
         
         self.anim = anim
         
     def make_info_text(self):
         text = []
         text.append('t = %1.4g'%(self.sim_step*self.dt))
+        q_text = ' '.join('%4.3f,'%F for F in self.arm.q)
+        text.append('q = ['+q_text+']')
         u_text = ' '.join('%4.3f,'%F for F in self.shell.u)
         text.append('u = ['+u_text+']')
 
-        if self.control_type.startswith('adaptive'):
-            theta_text = ' '.join('%4.3f,'%F for F in self.control.theta)
-            text.append('theta = ['+theta_text+']')
-                
         return '\n'.join(text)    
 
     def anim_init(self):
@@ -124,6 +130,12 @@ class Runner:
 
     def anim_animate(self, i):
 
+        if self.end_time is not None:
+            # check for run time
+            if (self.sim_steps * self.dt) > self.end_time:
+                self.anim._stop()
+                plt.close()
+
         if self.control_type == 'random':
             # update target after specified period of time passes
             if self.sim_step % (self.target_steps*self.display_steps) == 0:
@@ -134,24 +146,19 @@ class Runner:
         # before drawing
         for j in range(self.display_steps):            
             # update control signal
-            if self.sim_step % self.control_steps == 0 or \
-                'tau' not in locals():
-                    tau = self.shell.control(self.arm)
+            if (self.sim_step % self.control_steps) == 0 or  self.tau is None:
+                    self.tau = self.shell.control(self.arm)
             # apply control signal and simulate
-            self.arm.apply_torque(u=tau, dt=self.dt)
+            self.arm.apply_torque(u=self.tau, dt=self.dt)
     
             self.sim_step +=1
-        
+
         # update figure
         self.arm_line.set_data(*self.arm.position())
         self.info.set_text(self.make_info_text())
         self.trail.set_data(self.trail_data[:,0], self.trail_data[:,1])
         if self.target is not None:
-            if isinstance(self.shell.controller, GC.Control):
-                # convert to plottable form if necessary
-                target = self.arm.position(q=self.target)
-            else:
-                target = self.target
+            target = self.target
             self.target_line.set_data(target)
             
         # update hand trail

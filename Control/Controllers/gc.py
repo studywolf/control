@@ -32,6 +32,16 @@ class Control(control.Control):
         self.target_gain = 2*np.pi
         self.target_bias = -np.pi
 
+        if self.write_to_file is True:
+            from Controllers.recorder import Recorder
+            # set up recorders
+            self.u_recorder = Recorder('control signal', self.task, 'gc')
+            self.xy_recorder = Recorder('end-effector position', self.task, 'gc')
+            self.dist_recorder = Recorder('distance from target', self.task, 'gc')
+            self.recorders = [self.u_recorder, 
+                            self.xy_recorder, 
+                            self.dist_recorder]
+
     def check_distance(self, arm):
         """Checks the distance to target"""
         return np.sum(abs(arm.q - self.target))
@@ -56,6 +66,12 @@ class Control(control.Control):
 
         # tau = Mq * q_des + tau_grav, but gravity = 0
         self.u = np.dot(Mq, q_des).reshape(-1,)
+
+        if self.write_to_file is True:
+            # feed recorders their signals
+            self.u_recorder.record(0.0, self.U)
+            self.xy_recorder.record(0.0, self.arm.x)
+            self.dist_recorder.record(0.0, self.target - self.arm.x)
 
         return self.u
 

@@ -22,9 +22,10 @@ class Shell(object):
     """
 
     def __init__(self, controller, target_list, 
-                 threshold=.01, pen_down=False):
+                    threshold=.01, pen_down=False, 
+                    timer_time=1, timer2_time=50):
         """
-        control Control instance: the controller to use 
+        controller Control instance: the controller to use 
         pen_down boolean: True if the end-effector is drawing
         """
 
@@ -37,18 +38,63 @@ class Shell(object):
         self.target_index = 0
         self.set_target()
 
+        # starts when a movement is complete before starting the next one
+        self.run_timer = False 
+        self.timer = 0 
+        self.hold_time = timer_time # ns
+
+        # starts when target is presented, while running arm can't move
+        self.run_timer2 = False
+        self.timer2 = 0 
+        self.hold_time2 = timer2_time # ns
+
     def control(self, arm): 
         """Move to a series of targets.
         """
 
-        if self.controller.check_distance(arm) < self.threshold:
-            if self.target_index < len(self.target_list)-1:
-                self.target_index += 1
-            self.set_target()
+        if self.controller.check_distance(arm) < self.threshold and self.run_timer == False:
+            # start the timer, holding for self.hold_time ms before beginning next movement
+            self.run_timer = True
 
-            self.controller.apply_noise = True
-            self.not_at_start = not self.not_at_start
-            self.pen_down = not self.pen_down
+            if (self.target_index % 3) == 1: 
+                print 'start recording'
+                for recorder in self.controller.recorders:
+                    recorder.start_recording = True
+
+        if self.run_timer == True:
+
+            self.timer += 1
+
+            if self.timer == self.hold_time:
+                # then move the target list forward now
+            
+                if self.target_index < len(self.target_list)-1:
+                    self.target_index += 1
+                self.set_target()
+
+                self.not_at_start = not self.not_at_start
+                self.pen_down = not self.pen_down
+
+                self.timer = 0
+                self.run_timer = False
+                self.run_timer2 = True
+                self.controller.block_output = True
+
+                print 'target shown...'
+
+
+        if self.run_timer2 == True:
+
+            self.timer2 += 1
+
+            if self.timer2 == self.hold_time2:
+                # stop blocking output, let control signal be applied
+
+                self.timer2 = 0
+                self.run_timer2 = False
+                self.controller.block_output = False
+
+                print 'start movement...'
 
         self.u = self.controller.control(arm)
 
@@ -58,12 +104,22 @@ class Shell(object):
         """
         Set the current target for the controller.
         """
+
+        # write to file if it's time
+        if self.target_index % 3 == 0 and \
+                    self.target_index > 0: 
+            print 'write to file'
+            for recorder in self.controller.recorders:
+                recorder.write_out = True
+
+        # and then exit or go to the next target
         if self.target_index == len(self.target_list)-1:
-            target = [1, 2]
+            exit()
         else:
             target = self.target_list[self.target_index]
 
-        if target[0] != target[0]: # if it's NANs
+        # if it's NANs then skip to next target
+        if target[0] != target[0]: 
             self.target_index += 1
             self.set_target()
         else:

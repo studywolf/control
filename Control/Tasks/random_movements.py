@@ -15,27 +15,40 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from Arms.three_link.arm import Arm3Link as Arm3
-
 import Controllers.shell as shell
 
 import numpy as np
 
-def Task(arm_class, control_type):
+def Task(arm, controller_class, write_to_file=False, **kwargs):
     """
     This task sets up the arm to move to random 
     target positions ever t_target seconds. 
     """
 
+    # check controller type ------------------
+    controller_name = controller_class.__name__.split('.')[1]
+    if controller_name not in ('gc', 'lqr', 'osc'):
+        raise Exception('Cannot perform reaching task with this controller.')
+
+    # set arm specific parameters ------------
+    if arm.DOF == 1:
+        kp = 5
+    elif arm.DOF == 2:
+        kp = 10
+    elif arm.DOF == 3: 
+        kp = 50
+
+    # generate control shell -----------------
     control_pars = {'pen_down':True}
 
-    runner_pars = {'control_type':'random',
-                   'title':'Task: Random movements'}
-    if issubclass(arm_class, Arm3):
-        runner_pars.update({'box':[-5,5,-5,5]})
-
-    kp = 50 # position error gain on the PD controller
-    controller = control_type(kp=kp, kv=np.sqrt(kp))
+    controller = controller_class.Control(kp=kp, 
+                                        kv=np.sqrt(kp),
+                                        task='arm%i/random'%arm.DOF,
+                                        write_to_file=write_to_file)
     control_shell = shell.Shell(controller=controller, **control_pars)
+
+    # generate runner parameters -----------
+    runner_pars = {'control_type':'random',
+                'title':'Task: Random movements'}
 
     return (control_shell, runner_pars)

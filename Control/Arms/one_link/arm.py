@@ -15,11 +15,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from ..Arm import Arm
+from ..ArmBase import ArmBase
 import numpy as np
 import py1LinkArm
 
-class Arm1Link(Arm):
+class Arm(ArmBase):
     """A wrapper around a MapleSim generated C simulation 
     of a one link arm"""
 
@@ -29,7 +29,7 @@ class Arm1Link(Arm):
                     the end-effector should relay the x or y position.
         """
         self.DOF = 1
-        Arm.__init__(self, singularity_thresh=1e-10, **kwargs)
+        ArmBase.__init__(self, singularity_thresh=1e-10, **kwargs)
 
         # length of arm links
         self.l1 = .8
@@ -40,7 +40,8 @@ class Arm1Link(Arm):
         izz1=15.
         # create mass matrices at COM for each link
         self.M1 = np.zeros((6,6))
-        self.M1[0:3,0:3] = np.eye(3)*m1; self.M1[3:,3:] = np.eye(3)*izz1
+        self.M1[0:3,0:3] = np.eye(3)*m1
+        self.M1[3:,3:] = np.eye(3)*izz1
 
         self.resting_position = np.array([np.pi/4.0])
         
@@ -49,6 +50,7 @@ class Arm1Link(Arm):
         # maplesim arm simulation
         self.sim = py1LinkArm.pySim(dt=1e-5)
         self.sim.reset(self.state)
+        self.reset()
         self.update_state()
 
     def apply_torque(self, u, dt):
@@ -58,35 +60,38 @@ class Arm1Link(Arm):
         u np.array: the control signal to apply
         dt float: the timestep
         """
-        u = np.array(u, dtype='float')
+        u = -1 * np.array(u, dtype='float')
        
         for i in range(int(np.ceil(dt/1e-5))):
-            self.sim.step(self.state, -1*u)
+            self.sim.step(self.state, u)
         self.update_state()
 
-    def gen_jacCOM1(self):
+    def gen_jacCOM1(self, q=None):
         """Generates the Jacobian from the COM of the first
            link to the origin frame"""
+        q = self.q if q is None else q
     
         JCOM1 = np.zeros((6,1))
-        JCOM1[0,0] = self.l1 / 2. * -np.sin(self.q[0]) 
-        JCOM1[1,0] = self.l1 / 2. * np.cos(self.q[0]) 
+        JCOM1[0,0] = self.l1 / 2. * -np.sin(q[0]) 
+        JCOM1[1,0] = self.l1 / 2. * np.cos(q[0]) 
         JCOM1[5,0] = 1.0
 
         return JCOM1
 
-    def gen_jacEE(self):
+    def gen_jacEE(self, q=None):
         """Generates the Jacobian from end-effector to
            the origin frame"""
+        q = self.q if q is None else q
 
         JEE = np.zeros((2,1))
-        JEE[0,0] = self.l1 * -np.sin(self.q[0])
-        JEE[1,0] = self.l1 * np.cos(self.q[0])
+        JEE[0,0] = self.l1 * -np.sin(q[0])
+        JEE[1,0] = self.l1 * np.cos(q[0])
         
         return JEE
 
-    def gen_Mq(self):
+    def gen_Mq(self, q=None):
         """Generates the mass matrix for the arm in joint space"""
+        q = self.q if q is None else q
         
         # get the instantaneous Jacobians
         JCOM1 = self.gen_jacCOM1()
@@ -101,18 +106,23 @@ class Arm1Link(Arm):
         q np.array: a set of angles to return positions for
         ee_only boolean: only return the (x,y) of the end-effector
         """
-        if q is None: q0 = self.q[0]
-        else: q0 = q[0]
+        q = self.q if q is None else q
 
         x = np.cumsum([0,
-                       self.l1 * np.cos(q0)])
+                       self.l1 * np.cos(q[0])])
         y = np.cumsum([0,
-                       self.l1 * np.sin(q0)])
+                       self.l1 * np.sin(q[0])])
         
         if ee_only: return np.array([x[-1], y[-1]])
         return (x, y)
 
     def reset(self, q=[], dq=[]):
+        if isinstance(q, np.ndarray): q = q.tolist()
+        if isinstance(dq, np.ndarray): dq = dq.tolist()
+
+        if q: assert len(q) == self.DOF
+        if dq: assert len(dq) == self.DOF
+
         state = np.zeros(self.DOF*2)
         state[::2] = self.init_q if not q else np.copy(q)
         state[1::2] = self.init_dq if not dq else np.copy(dq)

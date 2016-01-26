@@ -15,87 +15,59 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Usage:
-    run ARM CONTROL TASK [options]
+    run ARM CONTROLLER TASK [options]
 
 Arguments: 
-    ARM     the arm to control
-    CONTROL the controller to use 
-    TASK    the task to perform
+    ARM         the arm to control
+    CONTROLLER  the controller to use
+    TASK        the task to perform
 
 Options:
-    --arm_options=OPTIONS   specify options to apply to arm sim 
-                            only valid for arm3, choices are:
-                            (damping, gravity, gravity_damping, smallmass)
-    --use_pygame=PYGAME     specify using pygame for visualization
-    --video=VIDPARS  (title, num_frames) [default:('vid.mp4',100)]
-
+    --phrase=PHRASEPARS         specify the phrase to write if TASK=write
+    --scale=SCALEPARS           specify the scale of the DMP if TASK=write 
+    --write_to_file=WRITEPARS   specify boolean for writing to file, 
+                                                  default is False
+    --end_time=ENDTIME          specify float time to end (seconds)
+                                                  default is None
 '''
 
-from Arms.one_link.arm import Arm1Link as Arm1
-from Arms.one_link.arm_python import Arm1Link as Arm1Python
-from Arms.two_link.arm import Arm2Link as Arm2
-from Arms.two_link.arm_python import Arm2Link as Arm2Python
-from Arms.three_link.arm import Arm3Link as Arm3
-
-import Controllers.dmp as dmp 
-import Controllers.gc as gc 
-import Controllers.lqr as lqr 
-import Controllers.osc as osc 
-import Controllers.trace as trace
-
-import Tasks.follow_mouse as follow_mouse
-import Tasks.random_movements as random_movements
-import Tasks.reach as reach
-import Tasks.write_numbers as write_numbers
-import Tasks.write_words as write_words
+from sim_and_plot import Runner
 
 from docopt import docopt
-import numpy as np
+import importlib
 
-dt = 1e-3
 args = docopt(__doc__)
 
-# get and instantiate the chosen arm
-arm_class = {'arm1':Arm1,
-             'arm1_python':Arm1Python,
-             'arm2':Arm2,
-             'arm2_python':Arm2Python,
-             'arm3':Arm3}[args['ARM']]
-arm = arm_class(dt=dt, options=args['--arm_options'])
+dt = 1e-2 if args['CONTROLLER'] == 'ilqr' else 1e-3
 
-# set the initial position of the arm
-if arm.DOF == 3: 
-    initial_angles = [np.pi/5.5, np.pi/1.7, np.pi/6.]
-else:
-    initial_angles = [0.51591773, 1.96693463][:arm.DOF]
-arm.reset(q=initial_angles)
+# get and initialize the arm
+if args['ARM'][:4] == 'arm1':
+    subfolder = 'one_link'
+if args['ARM'][:4] == 'arm2':
+    subfolder = 'two_link'
+elif args['ARM'][:4] == 'arm3':
+    subfolder = 'three_link'
+arm_name = 'Arms.%s.%s'%(subfolder, 'arm'+args['ARM'][4:])
+arm_module = importlib.import_module(name=arm_name)
+arm = arm_module.Arm(dt=dt)
 
 # get the chosen controller class
-control_class = {'dmp':dmp.Shell,
-           'gc':gc.Control,
-           'lqr':lqr.Control,
-           'osc':osc.Control,
-           'trace':trace.Shell}[args['CONTROL']]
+controller_name = 'Controllers.%s'%args['CONTROLLER'].lower()
+controller_class = importlib.import_module(name=controller_name)
 
 # get the chosen task class
-task = {'follow':follow_mouse.Task,
-        'random':random_movements.Task,
-        'reach':reach.Task,
-        'write_numbers':write_numbers.Task,
-        'write_words':write_words.Task,
-        }[args['TASK']]
+task_name = 'Tasks.%s'%args['TASK']
+task_module = importlib.import_module(name=task_name)
+task = task_module.Task
 
 # instantiate the controller for the chosen task
 # and get the sim_and_plot parameters 
-control_shell, runner_pars = task(arm_class, control_class)
+control_shell, runner_pars = task(arm, controller_class,
+    sequence=args['--phrase'], scale=args['--scale'], 
+    write_to_file=bool(args['--write_to_file']))
 
 # set up simulate and plot system
-if args['--use_pygame'] is not None:
-    from sim_and_plot_pygame import Runner
-else:
-    from sim_and_plot import Runner
-
 runner = Runner(dt=dt, **runner_pars)
-
-runner.run(arm=arm, control_shell=control_shell, video=args['--video'])
+runner.run(arm=arm, control_shell=control_shell, 
+        end_time=args['--end_time'])
 runner.show()

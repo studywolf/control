@@ -21,35 +21,30 @@ class Control(object):
     """
     The base class for controllers.
     """
-    def __init__(self, kp=10, kv=np.sqrt(10)):
+    def __init__(self, kp=10, kv=np.sqrt(10),
+                    additions=[], task='', write_to_file=False):
         """
+        additions list: list of Addition classes to append to 
+                        the outgoing control signal
         kp float: the position error term gain value
         kv float: the velocity error term gain value
         """
 
         self.u = np.zeros((2,1)) # control signal
 
+        self.additions = additions
         self.kp = kp
         self.kv = kv
-       
-        np.random.seed(1)
+        self.task = task
+     
+        self.write_to_file = write_to_file
+        self.recorders = []
+
+    def check_distance(self, arm):
+        """Checks the distance to target"""
+        return np.sum(abs(arm.x - self.target)) + np.sum(abs(arm.dq))
 
     def control(self): 
         """Generates a control signal to apply to the arm"""
         raise NotImplementedError
-
-    def gen_target(self, arm):
-        """Generate a target based on the control type
-        
-        arm Arm: an instance of the arm object
-        """
-        raise NotImplementedError
-
-    def set_target_from_mouse(self, target):
-        """Takes in a (x,y) coordinate and sets the target
-        
-        target np.array: the (x,y) target location
-        """
-        self.target = target
-        return self.target
 

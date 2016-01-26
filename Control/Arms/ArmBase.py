@@ -16,10 +16,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import numpy as np
 
-class Arm:
+class ArmBase:
     """A base class for arm simulators"""
 
-    def __init__(self, init_q=None, init_dq=None, dt=1e-5, singularity_thresh=.00025, options=None):
+    def __init__(self, init_q=None, init_dq=None, 
+            dt=1e-5, singularity_thresh=.00025, options=None):
         """
         dt float: the timestep for simulation
         singularity_thresh float: the point at which to singular values
@@ -42,12 +43,6 @@ class Arm:
         """
         raise NotImplementedError
 
-    def copy(self):
-        """Return a copy of the arm in the current configuration."""
-        arm = self.__class__(dt=self.dt)
-        arm.reset(q=self.q, dq=self.dq)
-        return arm
-
     def gen_jacEE(self):
         """Generates the Jacobian from end-effector to
            the origin frame"""
@@ -57,23 +52,20 @@ class Arm:
         """Generates the mass matrix for the arm in joint space"""
         raise NotImplementedError
 
-    def gen_Mx(self, JEE=None):
+    def gen_Mx(self, JEE=None, q=None, **kwargs):
         """Generate the mass matrix in operational space"""
+        if q is  None:
+            q = self.q
 
-        Mq = self.gen_Mq()
+        Mq = self.gen_Mq(q=q, **kwargs)
 
-        if JEE == None: JEE = self.gen_jacEE()
+        if JEE == None: JEE = self.gen_jacEE(q=q)
         Mx_inv = np.dot(JEE, np.dot(np.linalg.inv(Mq), JEE.T))
         u,s,v = np.linalg.svd(Mx_inv)
-        if len(s[abs(s) < self.singularity_thresh]) == 0: 
-            # if we're not near a singularity
-            Mx = np.linalg.inv(Mx_inv)
-        else: 
-            # in the case that the robot is near a singularity
-            for i in range(len(s)):
-                if s[i] < self.singularity_thresh: s[i] = 0
-                else: s[i] = 1.0/float(s[i])
-            Mx = np.dot(v, np.dot(np.diag(s), u.T))
+        # cut off any singular values that could cause control problems
+        for i in range(len(s)):
+            s[i] = 0 if s[i] < self.singularity_thresh else 1./float(s[i])
+        Mx = np.dot(v, np.dot(np.diag(s), u.T))
 
         return Mx
 
@@ -87,7 +79,7 @@ class Arm:
         """
         raise NotImplementedError
 
-    def reset(self, q=None, dq=None):
+    def reset(self, q=[], dq=[]):
         """Resets the state of the arm 
         q list: a list of the joint angles
         dq list: a list of the joint velocities
@@ -101,6 +93,7 @@ class Arm:
         self.q = np.copy(self.init_q) if not q else np.copy(q)
         self.dq = np.copy(self.init_dq) if not dq else np.copy(dq)
         self.x = self.position(ee_only=True)
+        self.t = 0.0
 
     def update_state(self):
         """Update the state (for MapleSim models)"""
