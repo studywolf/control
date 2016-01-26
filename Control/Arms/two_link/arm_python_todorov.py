@@ -102,7 +102,6 @@ class Arm(Arm2Base):
         self.q += dt * self.dq
         self.dq += dt * np.array([(I1_11 * torque[0] + I1_12 * torque[1]),
                                    (I1_12 * torque[0] + I1_22 * torque[1])])
-        self.x = self.position(ee_only=True)
 
         # transfer to next time step 
         self.t += dt

@@ -42,7 +42,6 @@ class Arm1Link(Arm):
 
         # initial arm joint and end-effector position
         self.q = np.array([0.0]) # matching the C simulation
-        self.x = self.position(ee_only=True)
         # initial arm joint and end-effector velocity
         self.dq = np.zeros(1)
         # initial arm joint and end-effector acceleration
@@ -97,7 +96,7 @@ class Arm1Link(Arm):
         
         return Mq
 
-    def position(self, q=None, ee_only=False):
+    def position(self, q=None):
         """Compute x,y position of the hand"""
         if q is None: q0 = self.q[0]
         else: q0 = q[0]
@@ -107,6 +106,4 @@ class Arm1Link(Arm):
         y = np.cumsum([0,
                        self.l1 * np.sin(q0)])
 
-        if ee_only: return np.array([x[-1], y[-1]])
-
-        return (x, y)
+        return np.array([x, y])

@@ -69,13 +69,11 @@ class ArmBase:
 
         return Mx
 
-    def position(self, q=None, ee_only=False):
+    def position(self, q=None):
         """Compute x,y position of the hand
 
         q list: a list of the joint angles, 
                 if None use current system state
-        ee_only boolean: if true only return the 
-                         position of the end-effector
         """
         raise NotImplementedError
 
@@ -92,9 +90,12 @@ class ArmBase:
 
         self.q = np.copy(self.init_q) if not q else np.copy(q)
         self.dq = np.copy(self.init_dq) if not dq else np.copy(dq)
-        self.x = self.position(ee_only=True)
         self.t = 0.0
 
     def update_state(self):
         """Update the state (for MapleSim models)"""
         pass
+
+    @property
+    def x(self):
+        return self.position()[:,-1]

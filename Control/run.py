@@ -42,7 +42,7 @@ import importlib
 args = docopt(__doc__)
 
 dt = 1e-2 if args['CONTROLLER'] == 'ilqr' else 1e-3
-dt = dt if args.get('DT',None) is None else args['DT']
+dt = dt if args.get('DT',None) is None else float(args['DT'])
 
 # get and initialize the arm
 if args['ARM'][:4] == 'arm1':
@@ -68,7 +68,7 @@ task = task_module.Task
 # and get the sim_and_plot parameters 
 control_shell, runner_pars = task(arm, controller_class,
     sequence=args['--phrase'], scale=args['--scale'], 
-    force=float(args['--force']), 
+    force=float(args['--force']) if args['--force'] is not None else None, 
     write_to_file=bool(args['--write_to_file']))
 
 # set up simulate and plot system

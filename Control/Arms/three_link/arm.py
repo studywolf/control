@@ -209,16 +209,13 @@ class Arm(ArmBase):
             x0=q0, eqcons=[x_constraint, y_constraint], 
             args=((xy[0], xy[1]),), iprint=0)
 
-    def position(self, q=None, ee_only=False, rotate=0.0):
+    def position(self, q=None):
         """Compute x,y position of the hand
 
         q np.array: a set of angles to return positions for
-        ee_only boolean: only return the (x,y) of the end-effector
-        rotate float: how much to rotate the first joint by
         """
         if q is None: q0 = self.q[0]; q1 = self.q[1]; q2 = self.q[2]
         else: q0 = q[0]; q1 = q[1]; q2 = q[2]
-        q0 += rotate
 
         x = np.cumsum([0,
                        self.L[0] * np.cos(q0),
@@ -228,8 +225,7 @@ class Arm(ArmBase):
                        self.L[0] * np.sin(q0),
                        self.L[1] * np.sin(q0+q1),
                        self.L[2] * np.sin(q0+q1+q2)])
-        if ee_only: return np.array([x[-1], y[-1]])
-        return (x, y)
+        return np.array([x, y])
 
     def reset(self, q=[], dq=[]):
         if isinstance(q, np.ndarray): q = q.tolist()
@@ -237,7 +233,6 @@ class Arm(ArmBase):
 
         if q: assert len(q) == self.DOF
         if dq: assert len(dq) == self.DOF
-
 
         state = np.zeros(self.DOF*2)
         state[::2] = self.init_q if not q else np.copy(q)
@@ -251,5 +246,3 @@ class Arm(ArmBase):
         self.t = self.state[0]
         self.q = self.state[1:4]
         self.dq = self.state[4:] 
-
-        self.x = self.position(ee_only=True)

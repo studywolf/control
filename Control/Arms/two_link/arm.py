@@ -70,5 +70,3 @@ class Arm(Arm2Base):
         self.q = self.state[1:3]
         self.dq = self.state[3:5] 
         self.ddq = self.state[5:] 
-
-        self.x = self.position(ee_only=True)

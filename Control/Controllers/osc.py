@@ -56,7 +56,7 @@ class Control(control.Control):
 
         # calculate desired end-effector acceleration
         if x_des is None:
-            self.x = arm.position(ee_only=True)
+            self.x = arm.x 
             x_des = self.kp * (self.target - self.x)
 
         # generate the mass matrix in end-effector space

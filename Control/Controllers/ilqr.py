@@ -99,7 +99,7 @@ class Control(lqr.Control):
 
         # add in any additional signals (noise, external forces)
         for addition in self.additions:
-            self.u += addition.generate(u, arm)
+            self.u += addition.generate(self.u, arm)
 
         return self.u
 
@@ -146,7 +146,7 @@ class Control(lqr.Control):
         wp = 1e4 # terminal position cost weight
         wv = 1e4 # terminal velocity cost weight
 
-        xy = self.arm.position(q=x, ee_only=True)
+        xy = self.arm.position(q=x)[:,-1]
         xy_err = np.array([xy[0] - self.target[0], xy[1] - self.target[1]])
         l = (wp * np.sum(xy_err**2) +
                 wv * np.sum(x[self.arm.DOF:self.arm.DOF*2]**2))

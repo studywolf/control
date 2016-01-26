@@ -100,7 +100,7 @@ class Arm(ArmBase):
         
         return Mq
         
-    def position(self, q=None, ee_only=False):
+    def position(self, q=None):
         """Compute x,y position of the hand
 
         q np.array: a set of angles to return positions for
@@ -112,9 +112,7 @@ class Arm(ArmBase):
                        self.l1 * np.cos(q[0])])
         y = np.cumsum([0,
                        self.l1 * np.sin(q[0])])
-        
-        if ee_only: return np.array([x[-1], y[-1]])
-        return (x, y)
+        return np.array([x, y])
 
     def reset(self, q=[], dq=[]):
         if isinstance(q, np.ndarray): q = q.tolist()
@@ -137,5 +135,3 @@ class Arm(ArmBase):
         self.t = self.state[0]
         self.q = self.state[1:2]
         self.dq = self.state[2:] 
-
-        self.x = self.position(ee_only=True)

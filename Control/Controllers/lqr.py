@@ -82,7 +82,7 @@ class Control(control.Control):
 
         # calculate desired end-effector acceleration
         if x_des is None:
-            self.x = arm.position(ee_only=True)
+            self.x = arm.x 
             x_des = self.x - self.target 
 
         self.arm, state = self.copy_arm(arm)

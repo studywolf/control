@@ -54,7 +54,6 @@ class Arm(Arm2Base):
         ddq0 = (-H2 + u[1]- M22*ddq1) / M21
         self.dq += np.array([ddq0, ddq1])*dt
         self.q += self.dq*dt
-        self.x = self.position(ee_only=True)
 
         # transfer to next time step 
         self.t += dt

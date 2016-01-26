@@ -116,11 +116,10 @@ class Arm2Base(ArmBase):
         return scipy.optimize.minimize(fun=distance_to_target, x0=self.q, 
                 args=([xy[0], xy[1]], self.L))['x']
 
-    def position(self, q=None, ee_only=False):
+    def position(self, q=None):
         """Compute x,y position of the hand
 
         q np.array: a set of angles to return positions for
-        ee_only boolean: only return the (x,y) of the end-effector
         rotate float: how much to rotate the first joint by
         """
         q = self.q if q is None else q
@@ -131,5 +130,4 @@ class Arm2Base(ArmBase):
         y = np.cumsum([0,
                        self.l1 * np.sin(q[0]),
                        self.l2 * np.sin(q[0]+q[1])])
-        if ee_only: return np.array([x[-1], y[-1]])
-        return (x, y)
+        return np.array([x, y])

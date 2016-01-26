@@ -83,7 +83,7 @@ class Shell(shell.Shell):
                 self.pen_down = True
 
             if isinstance(self.controller, osc.Control):
-                pos = arm.position(ee_only=True)
+                pos = arm.x 
             elif isinstance(self.controller, gc.Control):
                 pos = arm.q
 
