@@ -108,6 +108,10 @@ class Control(control.Control):
             self.xy_recorder.record(0.0, self.x)
             self.dist_recorder.record(0.0, self.target - self.x)
 
+        # add in any additional signals 
+        for addition in self.additions:
+            self.u += addition.generate(self.u, arm)
+
         return self.u
  
     def copy_arm(self, real_arm):

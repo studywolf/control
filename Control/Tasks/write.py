@@ -18,13 +18,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import Controllers.dmp as dmp
 import Controllers.osc as osc
 import Controllers.trace as trace
+import Controllers.forcefield as forcefield
 
 import Tasks.Write.read_path as rp
 
 import numpy as np
 
 def Task(arm, controller_class, sequence=None, scale=None, 
-            write_to_file=False, **kwargs):
+            additions=None, write_to_file=False, **kwargs):
     """
     This task sets up the arm to write numbers inside 
     a specified area (-x_bias, x_bias, -y_bias, y_bias). 
@@ -57,7 +58,14 @@ def Task(arm, controller_class, sequence=None, scale=None,
     trajectory = rp.get_sequence(sequence, writebox, spaces=True)
 
     # generate control shell -----------------
-    control_pars = {'gain':1000, # pd gain for trajectory following
+    additions = []
+    if force is not None:
+        print 'applying joint velocity based forcefield...'
+        additions.append(forcefield.Addition(scale=force))
+        task = 'arm%i/forcefield'%arm.DOF
+
+    control_pars = {'additions':additions,
+                    'gain':1000, # pd gain for trajectory following
                     'pen_down':False, 
                     'threshold':threshold,
                     'trajectory':trajectory.T}

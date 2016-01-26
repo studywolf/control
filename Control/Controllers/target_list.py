@@ -23,7 +23,8 @@ class Shell(object):
 
     def __init__(self, controller, target_list, 
                     threshold=.01, pen_down=False, 
-                    timer_time=1, timer2_time=50):
+                    timer_time=1, timer2_time=50,
+                    postural=False):
         """
         controller Control instance: the controller to use 
         pen_down boolean: True if the end-effector is drawing
@@ -34,6 +35,7 @@ class Shell(object):
         self.target_list = target_list
         self.threshold = threshold
    
+        self.postural = postural
         self.not_at_start = True 
         self.target_index = 0
         self.set_target()
@@ -48,6 +50,11 @@ class Shell(object):
         self.timer2 = 0 
         self.hold_time2 = timer2_time # ns
 
+        if self.postural == True:
+            self.additions = self.controller.additions[0]
+            self.controller.additions = []
+            print 'additional force removed...'
+
     def control(self, arm): 
         """Move to a series of targets.
         """
@@ -56,7 +63,17 @@ class Shell(object):
             # start the timer, holding for self.hold_time ms before beginning next movement
             self.run_timer = True
 
-            if (self.target_index % 3) == 1: 
+            if self.postural == True and \
+                    self.target_index != len(self.target_list) - 1:
+                self.pen_down = not self.pen_down
+                self.controller.additions = [self.additions]
+                print 'additional force added...'
+
+                print 'start recording'
+                for recorder in self.controller.recorders:
+                    recorder.start_recording = True
+
+            elif (self.target_index % 3) == 1:
                 print 'start recording'
                 for recorder in self.controller.recorders:
                     recorder.start_recording = True
@@ -82,6 +99,14 @@ class Shell(object):
 
                 print 'target shown...'
 
+                if self.postural == True:
+                    self.controller.additions = []
+                    print 'additional force removed...'
+
+                    print 'write to file'
+                    for recorder in self.controller.recorders:
+                        recorder.write_out = True
+
 
         if self.run_timer2 == True:
 
@@ -106,8 +131,9 @@ class Shell(object):
         """
 
         # write to file if it's time
-        if self.target_index % 3 == 0 and \
-                    self.target_index > 0: 
+        if self.postural is not True and \
+                self.target_index % 3 == 0 and \
+                    self.target_index > 0: # 24 == 0
             print 'write to file'
             for recorder in self.controller.recorders:
                 recorder.write_out = True

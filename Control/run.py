@@ -23,12 +23,15 @@ Arguments:
     TASK        the task to perform
 
 Options:
+    --dt=DT                     specify float step size for simulations
+    --end_time=ENDTIME          specify float time to end (seconds)
+                                                  default is None
+    --force=FORCEPARS           specify float strength of force to add
+                                                  default is None
     --phrase=PHRASEPARS         specify the phrase to write if TASK=write
     --scale=SCALEPARS           specify the scale of the DMP if TASK=write 
     --write_to_file=WRITEPARS   specify boolean for writing to file, 
                                                   default is False
-    --end_time=ENDTIME          specify float time to end (seconds)
-                                                  default is None
 '''
 
 from sim_and_plot import Runner
@@ -39,6 +42,7 @@ import importlib
 args = docopt(__doc__)
 
 dt = 1e-2 if args['CONTROLLER'] == 'ilqr' else 1e-3
+dt = dt if args.get('DT',None) is None else args['DT']
 
 # get and initialize the arm
 if args['ARM'][:4] == 'arm1':
@@ -64,6 +68,7 @@ task = task_module.Task
 # and get the sim_and_plot parameters 
 control_shell, runner_pars = task(arm, controller_class,
     sequence=args['--phrase'], scale=args['--scale'], 
+    force=float(args['--force']), 
     write_to_file=bool(args['--write_to_file']))
 
 # set up simulate and plot system

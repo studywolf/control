@@ -16,10 +16,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 import Controllers.shell as shell
+import Controllers.forcefield as forcefield
 
 import numpy as np
 
-def Task(arm, controller_class, write_to_file=False, **kwargs):
+def Task(arm, controller_class, 
+        additions=None, write_to_file=False, **kwargs):
     """
     This task sets up the arm to move to random 
     target positions ever t_target seconds. 
@@ -39,13 +41,20 @@ def Task(arm, controller_class, write_to_file=False, **kwargs):
         kp = 50
 
     # generate control shell -----------------
-    control_pars = {'pen_down':True}
+    additions = []
+    if force is not None:
+        print 'applying joint velocity based forcefield...'
+        additions.append(forcefield.Addition(scale=force))
+        task = 'arm%i/forcefield'%arm.DOF
 
-    controller = controller_class.Control(kp=kp, 
+    controller = controller_class.Control(
+                                        additions=additions,
+                                        kp=kp, 
                                         kv=np.sqrt(kp),
+                                        pen_down=True,
                                         task='arm%i/random'%arm.DOF,
                                         write_to_file=write_to_file)
-    control_shell = shell.Shell(controller=controller, **control_pars)
+    control_shell = shell.Shell(controller=controller)
 
     # generate runner parameters -----------
     runner_pars = {'control_type':'random',

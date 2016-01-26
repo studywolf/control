@@ -97,6 +97,10 @@ class Control(lqr.Control):
             self.xy_recorder.record(0.0, self.arm.x)
             self.dist_recorder.record(0.0, self.target - self.arm.x)
 
+        # add in any additional signals (noise, external forces)
+        for addition in self.additions:
+            self.u += addition.generate(u, arm)
+
         return self.u
 
     def copy_arm(self, real_arm):
