@@ -35,12 +35,9 @@ To run the basic control code, from the base directory::
 
    python run.py ARM CONTROL TASK
    
-Where ARM = (arm1 | arm2 | arm2_python | arm3), the control types 
-available are CONTROL = (dmp | gc | trajectory | osc), and the tasks
-are those listed in the task directory, examples include 
-TASK = (follow | random | walk | write_numbers | write_words).
+Where you can find the arm options in the Arm directory subfolders (arm1, arm1_python, arm2, arm2_python, arm2_python_todorov, arm3),the control types available are in the Controllers subfolder (gc, osc, lqr, ilqr, dmp, trace), and the tasks are those listed in the task directory (follow_mouse, postural, random_movements, reach, write).
 
-If you would like to use the PyGame visualization you must have PyGame
-installed. To call up the PyGame visualization append --use_pygame=True to the
-end of your call.
+There are also a bunch of options, browse through the run.py header code to find them all!
+
+If you would like to use the PyGame visualization you must have PyGame installed. To call up the PyGame visualization append --use_pygame=True to the end of your call.
    
