@@ -1,5 +1,5 @@
 ============================================
-Studywolf Control repo
+StudyWolf Control repo
 ============================================
 
 This is a repository to hold the code I've developed for simulating 
@@ -35,7 +35,7 @@ To run the basic control code, from the base directory::
 
    python run.py ARM CONTROL TASK
    
-Where you can find the arm options in the Arm directory subfolders (arm1, arm1_python, arm2, arm2_python, arm2_python_todorov, arm3),the control types available are in the Controllers subfolder (gc, osc, lqr, ilqr, dmp, trace), and the tasks are those listed in the task directory (follow_mouse, postural, random_movements, reach, write).
+Where you can find the arm options in the Arm directory subfolders (arm1, arm1_python, arm2, arm2_python, arm2_python_todorov, arm3),the control types available are in the Controllers subfolder (gc, osc, lqr, ilqr, dmp, trace), and the tasks are those listed in the Task directory (follow_mouse, postural, random_movements, reach, write).
 
 There are also a bunch of options, browse through the run.py header code to find them all!
 
