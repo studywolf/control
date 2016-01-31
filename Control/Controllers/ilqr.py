@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2015 Travis DeWolf 
+Copyright (C) 2016 Travis DeWolf 
 
 Implemented from 'Control-limited differential dynamic programming'
 by Yuval Tassa, Nicolas Mansard, and Emo Todorov (2014).
@@ -77,10 +77,9 @@ class Control(lqr.Control):
 
         # Reset k if at the end of the sequence
         if self.t >= self.tN-1:
-            print 'reset!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
             self.t = 0
         # Compute the optimization
-        if self.t % 1 == 0:
+        if self.t % 10 == 0:
             x0 = np.zeros(arm.DOF*2)
             self.arm, x0[:arm.DOF*2] = self.copy_arm(arm)
             U = np.copy(self.U[self.t:])
@@ -245,47 +244,53 @@ class Control(lqr.Control):
         dt = self.arm.dt # time step
 
         lamb = 1.0 # regularization parameter
+        sim_new_trajectory = True
 
-        # simulate forward using the current control trajectory
-        X, cost = self.simulate(x0, U)
-
-        # now we linearly approximate the dynamics, and quadratically 
-        # approximate the cost function so we can use LQR methods 
-
-        # for storing linearized dynamics
-        # x(t+1) = f(x(t), u(t))
-        f_x = np.zeros((tN, num_states, num_states)) # df / dx
-        f_u = np.zeros((tN, num_states, dof)) # df / du
-        # for storing quadratized cost function 
-        l = np.zeros((tN,1)) # immediate state cost 
-        l_x = np.zeros((tN, num_states)) # dl / dx
-        l_xx = np.zeros((tN, num_states, num_states)) # d^2 l / dx^2
-        l_u = np.zeros((tN, dof)) # dl / du
-        l_uu = np.zeros((tN, dof, dof)) # d^2 l / du^2
-        l_ux = np.zeros((tN, dof, num_states)) # d^2 l / du / dx
-        # for everything except final state
-        for t in range(tN-1):
-            # x(t+1) = f(x(t), u(t)) = x(t) + dx(t) * dt
-            # linearized dx(t) = np.dot(A(t), x(t)) + np.dot(B(t), u(t))
-            # f_x = np.eye + A(t)
-            # f_u = B(t)
-            A, B = self.finite_differences(X[t], U[t])
-            f_x[t] = np.eye(num_states) + A * dt
-            f_u[t] = B * dt
-        
-            (l[t], l_x[t], l_xx[t], l_u[t], 
-                l_uu[t], l_ux[t]) = self.cost(X[t], U[t])
-            l[t] *= dt
-            l_x[t] *= dt
-            l_xx[t] *= dt
-            l_u[t] *= dt
-            l_uu[t] *= dt
-            l_ux[t] *= dt
-        # aaaand for final state
-        l[-1], l_x[-1], l_xx[-1] = self.cost_final(X[-1])
-
-        # begin the optimization iterations!
         for ii in range(self.max_iter):
+
+            if sim_new_trajectory == True: 
+                # simulate forward using the current control trajectory
+                X, cost = self.simulate(x0, U)
+                oldcost = np.copy(cost) # copy for exit condition check
+
+                # now we linearly approximate the dynamics, and quadratically 
+                # approximate the cost function so we can use LQR methods 
+
+                # for storing linearized dynamics
+                # x(t+1) = f(x(t), u(t))
+                f_x = np.zeros((tN, num_states, num_states)) # df / dx
+                f_u = np.zeros((tN, num_states, dof)) # df / du
+                # for storing quadratized cost function 
+                l = np.zeros((tN,1)) # immediate state cost 
+                l_x = np.zeros((tN, num_states)) # dl / dx
+                l_xx = np.zeros((tN, num_states, num_states)) # d^2 l / dx^2
+                l_u = np.zeros((tN, dof)) # dl / du
+                l_uu = np.zeros((tN, dof, dof)) # d^2 l / du^2
+                l_ux = np.zeros((tN, dof, num_states)) # d^2 l / du / dx
+                # for everything except final state
+                for t in range(tN-1):
+                    # x(t+1) = f(x(t), u(t)) = x(t) + dx(t) * dt
+                    # linearized dx(t) = np.dot(A(t), x(t)) + np.dot(B(t), u(t))
+                    # f_x = np.eye + A(t)
+                    # f_u = B(t)
+                    A, B = self.finite_differences(X[t], U[t])
+                    f_x[t] = np.eye(num_states) + A * dt
+                    f_u[t] = B * dt
+                
+                    (l[t], l_x[t], l_xx[t], l_u[t], 
+                        l_uu[t], l_ux[t]) = self.cost(X[t], U[t])
+                    l[t] *= dt
+                    l_x[t] *= dt
+                    l_xx[t] *= dt
+                    l_u[t] *= dt
+                    l_uu[t] *= dt
+                    l_ux[t] *= dt
+                # aaaand for final state
+                l[-1], l_x[-1], l_xx[-1] = self.cost_final(X[-1])
+
+                sim_new_trajectory = False
+
+            # optimize things! 
             # initialize Vs with final state cost and set up k, K 
             V = l[-1].copy() # value function
             V_x = l_x[-1].copy() # dV / dx
@@ -358,16 +363,19 @@ class Control(lqr.Control):
 
                 X = Xnew.copy() # update trajectory 
                 U = Unew.copy() # update control signal
+                oldcost = np.copy(cost)
                 cost = costnew
+
+                sim_neW_trajectory = True # do another rollout
 
                 print("iteration = %d; Cost = %.4f;"%(ii, costnew) + 
                         " logLambda = %.1f"%np.log(lamb))
-
                 # check to see if update is small enough to exit
-                if ii > 0 and ((abs(costnew-cost)/cost) < self.eps_converge):
+                if ii > 0 and ((abs(oldcost-cost)/cost) < self.eps_converge):
                     print("Converged at iteration = %d; Cost = %.4f;"%(ii,costnew) + 
                             " logLambda = %.1f"%np.log(lamb))
                     break
+
             else: 
                 # increase lambda (get closer to gradient descent)
                 lamb *= self.lamb_factor
