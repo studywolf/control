@@ -342,14 +342,15 @@ class Control(lqr.Control):
                 # 6c) V_xx = Q_xx - np.dot(-K^T, np.dot(Q_uu, K))
                 V_xx = Q_xx - np.dot(K[t].T, np.dot(Q_uu, K[t]))
 
+            costbest = cost
+            Unew = np.zeros((tN, dof))
             # calculate the optimal change to the control trajectory
             xnew = x0.copy() # 7a)
-            Unew = np.zeros((tN, dof))
             for t in range(tN - 1): 
                 # use feedforward (k) and feedback (K) gain matrices 
                 # calculated from our value function approximation
                 # to take a stab at the optimal control signal
-                Unew[t] = U[t] + lamb * k[t] + np.dot(K[t], xnew - X[t]) # 7b)
+                Unew[t] = U[t] + k[t] + np.dot(K[t], xnew - X[t]) # 7b)
                 # given this u, find our next state
                 _,xnew = self.plant_dynamics(xnew, Unew[t]) # 7c)
 
@@ -361,15 +362,15 @@ class Control(lqr.Control):
                 # decrease lambda (get closer to Newton's method)
                 lamb /= self.lamb_factor
 
-                X = Xnew.copy() # update trajectory 
-                U = Unew.copy() # update control signal
+                X = np.copy(Xnew) # update trajectory 
+                U = np.copy(Unew) # update control signal
                 oldcost = np.copy(cost)
-                cost = costnew
+                cost = np.copy(costnew)
 
-                sim_neW_trajectory = True # do another rollout
+                sim_new_trajectory = True # do another rollout
 
-                print("iteration = %d; Cost = %.4f;"%(ii, costnew) + 
-                        " logLambda = %.1f"%np.log(lamb))
+                # print("iteration = %d; Cost = %.4f;"%(ii, costnew) + 
+                #         " logLambda = %.1f"%np.log(lamb))
                 # check to see if update is small enough to exit
                 if ii > 0 and ((abs(oldcost-cost)/cost) < self.eps_converge):
                     print("Converged at iteration = %d; Cost = %.4f;"%(ii,costnew) + 
@@ -379,7 +380,7 @@ class Control(lqr.Control):
             else: 
                 # increase lambda (get closer to gradient descent)
                 lamb *= self.lamb_factor
-                print("cost: %.4f, increasing lambda to %.4f")%(cost, lamb)
+                # print("cost: %.4f, increasing lambda to %.4f")%(cost, lamb)
                 if lamb > self.lamb_max: 
                     print("lambda > max_lambda at iteration = %d;"%ii + 
                         " Cost = %.4f; logLambda = %.1f"%(cost, 
