@@ -56,7 +56,7 @@ class Runner:
         if arm.DOF == 1:
             box = [-1, 1, -.25, 1.5]
         elif arm.DOF == 2:
-            box = [-.75, .75, -.25, 1.5]
+            box = [-.5, .5, -.25, .75]
         elif arm.DOF == 3:
             box = [-2, 2, -.5, 4]
 

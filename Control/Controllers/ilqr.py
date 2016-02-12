@@ -31,7 +31,7 @@ class Control(lqr.Control):
     A controller that implements iterative Linear Quadratic Gaussian control.
     Controls the (x,y) position of a robotic arm end-effector.
     """
-    def __init__(self, n=100, max_iter=100, **kwargs): 
+    def __init__(self, n=50, max_iter=100, **kwargs): 
         '''
         n int: length of the control sequence
         max_iter int: limit on number of optimization iterations
@@ -79,7 +79,7 @@ class Control(lqr.Control):
         if self.t >= self.tN-1:
             self.t = 0
         # Compute the optimization
-        if self.t % 10 == 0:
+        if self.t % 1 == 0:
             x0 = np.zeros(arm.DOF*2)
             self.arm, x0[:arm.DOF*2] = self.copy_arm(arm)
             U = np.copy(self.U[self.t:])
@@ -145,7 +145,7 @@ class Control(lqr.Control):
         wp = 1e4 # terminal position cost weight
         wv = 1e4 # terminal velocity cost weight
 
-        xy = self.arm.position(q=x)[:,-1]
+        xy = self.arm.x
         xy_err = np.array([xy[0] - self.target[0], xy[1] - self.target[1]])
         l = (wp * np.sum(xy_err**2) +
                 wv * np.sum(x[self.arm.DOF:self.arm.DOF*2]**2))
@@ -342,7 +342,6 @@ class Control(lqr.Control):
                 # 6c) V_xx = Q_xx - np.dot(-K^T, np.dot(Q_uu, K))
                 V_xx = Q_xx - np.dot(K[t].T, np.dot(Q_uu, K[t]))
 
-            costbest = cost
             Unew = np.zeros((tN, dof))
             # calculate the optimal change to the control trajectory
             xnew = x0.copy() # 7a)
