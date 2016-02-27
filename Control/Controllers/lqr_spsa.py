@@ -74,7 +74,7 @@ class Control(control.Control):
         """  
         # Step 1: Initialization and coefficient selection
         k = 0 # iteration counter
-        max_iters = 4
+        max_iters = 20
         converge_thresh = 1e-10
 
         alpha = 0.602 # from (Spall, 1998)
