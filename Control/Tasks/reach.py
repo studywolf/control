@@ -29,7 +29,7 @@ def Task(arm, controller_class, x_bias=0., y_bias=2., dist=.4,
 
     # check controller type ------------------
     controller_name = controller_class.__name__.split('.')[1]
-    if controller_name not in ('ilqr', 'lqr', 'osc'):
+    if controller_name not in ('ilqr', 'lqr', 'lqr_spsa', 'osc'):
         raise Exception('Cannot perform reaching task with this controller.')
 
     # set arm specific parameters ------------
