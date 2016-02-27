@@ -74,7 +74,7 @@ class Control(control.Control):
         """  
         # Step 1: Initialization and coefficient selection
         k = 0 # iteration counter
-        max_iters = 12
+        max_iters = 4
         converge_thresh = 1e-10
 
         alpha = 0.602 # from (Spall, 1998)
@@ -92,13 +92,15 @@ class Control(control.Control):
             # Step 2: Generation of simultaneous perturbation vector
             # choose each component from a bernoulli +-1 distribution with 
             # probability of .5 for each +-1 outcome.
-            delta_k = np.random.choice([-1,1], size=len(x), p=[.5, .5])
+            delta_k = np.random.choice([-1,1], size=len(x) + len(u), p=[.5, .5])
 
             # Step 3: Function evaluations
-            inc_x = np.copy(x) + ck * delta_k
-            state_inc = self.plant_dynamics(inc_x, np.copy(u))
-            dec_x = np.copy(x) - ck * delta_k
-            state_dec = self.plant_dynamics(dec_x, np.copy(u))
+            inc_x = np.copy(x) + ck * delta_k[:len(x)]
+            inc_u = np.copy(u) + ck * delta_k[len(x):]
+            state_inc = self.plant_dynamics(inc_x, inc_u)
+            dec_x = np.copy(x) - ck * delta_k[:len(x)]
+            dec_u = np.copy(u) - ck * delta_k[len(x):]
+            state_dec = self.plant_dynamics(dec_x, dec_u)
 
             delta_j = ((state_inc - state_dec) / (2.0*ck)).reshape(-1)
 
@@ -108,36 +110,10 @@ class Control(control.Control):
             delta_J =  delta_j if delta_J is None else \
                 np.vstack([delta_J, delta_j])
 
-        f_x = np.dot(np.linalg.pinv(np.dot(delta_K.T, delta_K)), 
+        f_xu = np.dot(np.linalg.pinv(np.dot(delta_K.T, delta_K)), 
                 np.dot(delta_K.T, delta_J))
-
-        delta_K = None
-        delta_J = None
-        for ii in range(max_iters):
-            ak = a / (A + k + 1)**alpha
-            ck = c / (k + 1)**gamma
-
-            # Step 2: Generation of simultaneous perturbation vector
-            # choose each component from a bernoulli +-1 distribution with 
-            # probability of .5 for each +-1 outcome.
-            delta_k = np.random.choice([-1,1], size=len(u), p=[.5, .5])
-
-            # Step 3: Function evaluations
-            inc_u = np.copy(u) + ck * delta_k
-            state_inc = self.plant_dynamics(np.copy(x), inc_u)
-            dec_u = np.copy(u) - ck * delta_k
-            state_dec = self.plant_dynamics(np.copy(x), dec_u)
-
-            delta_j = ((state_inc - state_dec) / (2.0*ck)).reshape(-1)
-
-            # Step 4: Track delta_k and delta_j for Gradient approximation
-            delta_K = delta_k if delta_K is None else \
-                np.vstack([delta_K, delta_k])
-            delta_J =  delta_j if delta_J is None else \
-                np.vstack([delta_J, delta_j])
-
-        f_u = np.dot(np.linalg.pinv(np.dot(delta_K.T, delta_K)), 
-                np.dot(delta_K.T, delta_J))
+        f_x = f_xu[:len(x)]
+        f_u = f_xu[len(x):]
 
         return f_x.T , f_u.T
 
