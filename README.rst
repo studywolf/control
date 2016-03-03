@@ -44,7 +44,7 @@ If you would like to use the PyGame visualization you must have PyGame installed
 Writing to file
 ---------------
 
-To write to file, run setting the '''write_to_file''' parameter to '''True'''::
+To write to file, run setting the write_to_file flag to True::
   
    python run.py ARM CONTROL TASK --write_to_file=True
   
