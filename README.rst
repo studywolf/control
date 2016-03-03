@@ -40,4 +40,12 @@ Where you can find the arm options in the Arm directory subfolders (arm1, arm1_p
 There are also a bunch of options, browse through the run.py header code to find them all!
 
 If you would like to use the PyGame visualization you must have PyGame installed. To call up the PyGame visualization append --use_pygame=True to the end of your call.
-   
+  
+Writing to file
+---------------
+
+To write to file, run setting the '''write_to_file''' parameter to '''True'''::
+  
+   python run.py ARM CONTROL TASK --write_to_file=True
+  
+NOTE: You must create a directory structure in the root folder 'data/arm{2,3}/task_name/controller_name'.
