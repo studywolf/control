@@ -53,9 +53,6 @@ def Task(arm, controller_type, x_bias=0., y_bias=2., dist=.4,
         threshold = .0075 
     if arm.DOF == 3:
         threshold = .015
-        if adaptation == 'kinematic':
-            dist = .2
-            repeat = 6
 
     # generate the path to follow -------------
     # set up the reaching trajectories, 8 points around unit circle

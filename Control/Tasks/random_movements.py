@@ -21,7 +21,7 @@ import Controllers.forcefield as forcefield
 import numpy as np
 
 def Task(arm, controller_class, 
-        additions=None, write_to_file=False, **kwargs):
+        force=None, write_to_file=False, **kwargs):
     """
     This task sets up the arm to move to random 
     target positions ever t_target seconds. 
@@ -51,7 +51,6 @@ def Task(arm, controller_class,
                                         additions=additions,
                                         kp=kp, 
                                         kv=np.sqrt(kp),
-                                        pen_down=True,
                                         task='arm%i/random'%arm.DOF,
                                         write_to_file=write_to_file)
     control_shell = shell.Shell(controller=controller)

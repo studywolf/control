@@ -25,14 +25,13 @@ class Control(control.Control):
     A controller that implements operational space control.
     Controls the (x,y) position of a robotic arm end-effector.
     """
-    def __init__(self, solve_continuous=False, adaptation=None, **kwargs): 
+    def __init__(self, solve_continuous=False, **kwargs): 
 
         super(Control, self).__init__(**kwargs)
 
         self.DOF = 2 # task space dimensionality 
         self.u = None
         self.solve_continuous = solve_continuous
-        self.adaptation = adaptation
 
         if self.write_to_file is True:
             from recorder import Recorder
@@ -115,8 +114,7 @@ class Control(control.Control):
         return self.u
  
     def copy_arm(self, real_arm):
-
-        # need to make a copy of the arm for simulation
+        """ Make a copy of the arm for local simulation. """
         arm = real_arm.__class__()
         arm.dt = real_arm.dt
 
@@ -126,7 +124,7 @@ class Control(control.Control):
         return arm, np.hstack([real_arm.q, real_arm.dq])
 
     def plant_dynamics(self, x, u):
-
+        """ Simulate the arm dynamics locally. """
         if x.ndim == 1:
             x = x[:,None]
             u = u[None,:]
