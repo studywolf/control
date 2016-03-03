@@ -29,7 +29,7 @@ def Task(arm, controller_class, x_bias=0., y_bias=2., dist=.4,
 
     # check controller type ------------------
     controller_name = controller_class.__name__.split('.')[1]
-    if controller_name not in ('ilqr', 'lqr', 'lqr_spsa', 'osc'):
+    if controller_name not in ('ilqr', 'lqr', 'osc', 'gradient_approximation'):
         raise Exception('Cannot perform reaching task with this controller.')
 
     # set arm specific parameters ------------
@@ -41,6 +41,8 @@ def Task(arm, controller_class, x_bias=0., y_bias=2., dist=.4,
     elif arm.DOF == 3:
         kp = 100 
         threshold = .02
+    else:
+        raise Exception('Cannot perform reaching task with this arm.')
 
     # generate the path to follow -------------
     # set up the reaching trajectories, 8 points around unit circle
