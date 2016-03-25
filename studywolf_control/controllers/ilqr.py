@@ -23,8 +23,8 @@ import lqr as lqr
 import numpy as np
 from copy import copy
 
-from Arms.two_link.arm import Arm as Arm2
-from Arms.three_link.arm import Arm as Arm3
+from arms.two_link.arm import Arm as Arm2
+from arms.three_link.arm import Arm as Arm3
 
 class Control(lqr.Control):
     """
@@ -49,7 +49,7 @@ class Control(lqr.Control):
         self.eps_converge = 0.001 # exit if relative improvement below threshold
 
         if self.write_to_file is True:
-            from Controllers.recorder import Recorder
+            from controllers.recorder import Recorder
             # set up recorders
             self.u_recorder = Recorder('control signal', self.task, 'ilqr')
             self.xy_recorder = Recorder('end-effector position', self.task, 'ilqr')

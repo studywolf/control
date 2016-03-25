@@ -33,7 +33,7 @@ class Control(control.Control):
         self.target_bias = -np.pi
 
         if self.write_to_file is True:
-            from Controllers.recorder import Recorder
+            from controllers.recorder import Recorder
             # set up recorders
             self.u_recorder = Recorder('control signal', self.task, 'gc')
             self.xy_recorder = Recorder('end-effector position', self.task, 'gc')

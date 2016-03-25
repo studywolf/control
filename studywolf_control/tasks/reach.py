@@ -15,8 +15,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import Controllers.target_list as target_list
-import Controllers.forcefield as forcefield
+import controllers.target_list as target_list
+import controllers.forcefield as forcefield
 
 import numpy as np
 

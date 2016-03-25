@@ -16,7 +16,7 @@ The control directory requires that you have docopt installed::
 Additionally, there are a number of arm models available, if you 
 wish to use anything other than the 2 link arm coded in python, 
 then you will have to compile the arm. You can compile the arms by
-going in to the Arms/num_link/ folder and running setup::
+going in to the arms/num_link/ folder and running setup::
 
    python setup.py build_ext -i
    
@@ -36,7 +36,7 @@ To run the basic control code, from the base directory::
 
    python run.py ARM CONTROL TASK
    
-Where you can find the arm options in the Arm directory subfolders (arm1, arm1_python, arm2, arm2_python, arm2_python_todorov, arm3),the control types available are in the Controllers subfolder (gc, osc, lqr, ilqr, dmp, trace), and the tasks are those listed in the Task directory (follow_mouse, postural, random_movements, reach, write).
+Where you can find the arm options in the Arm directory subfolders (arm1, arm1_python, arm2, arm2_python, arm2_python_todorov, arm3),the control types available are in the controllers subfolder (gc, osc, lqr, ilqr, dmp, trace), and the tasks are those listed in the Task directory (follow_mouse, postural, random_movements, reach, write).
 
 There are also a bunch of options, browse through the run.py header code to find them all!
 

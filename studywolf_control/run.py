@@ -51,16 +51,16 @@ if args['ARM'][:4] == 'arm2':
     subfolder = 'two_link'
 elif args['ARM'][:4] == 'arm3':
     subfolder = 'three_link'
-arm_name = 'Arms.%s.%s'%(subfolder, 'arm'+args['ARM'][4:])
+arm_name = 'arms.%s.%s'%(subfolder, 'arm'+args['ARM'][4:])
 arm_module = importlib.import_module(name=arm_name)
 arm = arm_module.Arm(dt=dt)
 
 # get the chosen controller class
-controller_name = 'Controllers.%s'%args['CONTROLLER'].lower()
+controller_name = 'controllers.%s'%args['CONTROLLER'].lower()
 controller_class = importlib.import_module(name=controller_name)
 
 # get the chosen task class
-task_name = 'Tasks.%s'%args['TASK']
+task_name = 'tasks.%s'%args['TASK']
 task_module = importlib.import_module(name=task_name)
 task = task_module.Task
 

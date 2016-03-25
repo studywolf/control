@@ -15,12 +15,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import Controllers.dmp as dmp
-import Controllers.osc as osc
-import Controllers.trace as trace
-import Controllers.forcefield as forcefield
+import controllers.dmp as dmp
+import controllers.osc as osc
+import controllers.trace as trace
+import controllers.forcefield as forcefield
 
-import Tasks.Write.read_path as rp
+import tasks.write.read_path as rp
 
 import numpy as np
 

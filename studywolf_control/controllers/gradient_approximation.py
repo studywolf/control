@@ -20,7 +20,7 @@ import control
 import numpy as np
 import scipy.linalg as spla
 
-from Arms.two_link.arm_python import Arm as Arm2_python
+from arms.two_link.arm_python import Arm as Arm2_python
 
 class Control(control.Control):
     """
