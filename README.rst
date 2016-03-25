@@ -3,7 +3,8 @@ StudyWolf Control repo
 ============================================
 
 This is a repository to hold the code I've developed for simulating 
-control systems performing different benchmarking tasks. 
+control systems performing different benchmarking tasks. The development 
+and theory of the controllers are described at http://studywolf.com
 
 Installation
 ------------
