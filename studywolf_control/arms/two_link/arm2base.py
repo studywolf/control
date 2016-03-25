@@ -23,10 +23,11 @@ class Arm2Base(ArmBase):
     """A wrapper around a MapleSim generated C simulation
     of a two link arm."""
 
-    def __init__(self, l1=.31, l2=.27, **kwargs):
+    def __init__(self, init_q=[.75613, 1.8553], init_dq=[0.,0.], 
+                    l1=.31, l2=.27, **kwargs):
 
         self.DOF = 2
-        ArmBase.__init__(self, init_q=[.75613, 1.8553], init_dq=[0.,0.],
+        ArmBase.__init__(self, init_q=init_q, init_dq=init_dq,
                          singularity_thresh=.00025, **kwargs)
 
         # length of arm links
