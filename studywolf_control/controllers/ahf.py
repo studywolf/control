@@ -86,8 +86,6 @@ class Control(control.Control):
             self.old_target = self.target
             
         inputs = np.concatenate([self.joint_targets, np.zeros(2), arm.q, arm.dq])[None,None,:]
-        # inputs = np.concatenate([arm.q, arm.dq, self.joint_targets, np.zeros(2)])[None,None,:]
-        # inputs = np.concatenate([ np.array([0.53922376, 1.81746582]), np.zeros(2), arm.q, arm.dq])[None,None,:]
         self.act = [a[:,-1,:] for a in self.rnn.forward(inputs, init_activations=self.act)]
         u = self.act[-1][0]
         # NOTE: Make sure this is set up the same way as in training
