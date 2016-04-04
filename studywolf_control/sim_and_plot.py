@@ -132,7 +132,7 @@ class Runner:
 
         if self.end_time is not None:
             # check for run time
-            if (self.sim_steps * self.dt) > self.end_time:
+            if (self.sim_step * self.dt) > self.end_time:
                 self.anim._stop()
                 plt.close()
 

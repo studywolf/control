@@ -28,7 +28,7 @@ Options:
                                                   default is None
     --force=FORCEPARS           specify float strength of force to add
                                                   default is None
-    --phrase=PHRASEPARS         specify the phrase to write if TASK=write
+    --sequence=PHRASEPARS       specify sequence details for a given TASK
     --scale=SCALEPARS           specify the scale of the DMP if TASK=write 
     --write_to_file=WRITEPARS   specify boolean for writing to file, 
                                                   default is False
@@ -42,7 +42,7 @@ import importlib
 args = docopt(__doc__)
 
 dt = 1e-2 if args['CONTROLLER'] == 'ilqr' else 1e-3
-dt = dt if args.get('DT',None) is None else float(args['DT'])
+dt = dt if args.get('--dt',None) is None else float(args['--dt'])
 
 # get and initialize the arm
 if args['ARM'][:4] == 'arm1':
@@ -67,12 +67,12 @@ task = task_module.Task
 # instantiate the controller for the chosen task
 # and get the sim_and_plot parameters 
 control_shell, runner_pars = task(arm, controller_class,
-    sequence=args['--phrase'], scale=args['--scale'], 
+    sequence=args['--sequence'], scale=args['--scale'], 
     force=float(args['--force']) if args['--force'] is not None else None, 
     write_to_file=bool(args['--write_to_file']))
 
 # set up simulate and plot system
 runner = Runner(dt=dt, **runner_pars)
 runner.run(arm=arm, control_shell=control_shell, 
-        end_time=args['--end_time'])
+        end_time=float(args['--end_time']))
 runner.show()

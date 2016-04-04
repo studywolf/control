@@ -21,7 +21,8 @@ import controllers.forcefield as forcefield
 import numpy as np
 
 def Task(arm, controller_class, x_bias=0., y_bias=2., dist=.4, 
-         additions=None, force=None, write_to_file=False, **kwargs):
+         additions=None, force=None, write_to_file=False, 
+         sequence=None, **kwargs):
     """
     This task sets up the arm to reach to 8 targets center out from
     (x_bias, y_bias) at a distance=dist.
@@ -29,7 +30,7 @@ def Task(arm, controller_class, x_bias=0., y_bias=2., dist=.4,
 
     # check controller type ------------------
     controller_name = controller_class.__name__.split('.')[1]
-    if controller_name not in ('ilqr', 'lqr', 'osc', 'gradient_approximation'):
+    if controller_name not in ('ilqr', 'lqr', 'osc', 'gradient_approximation', 'ahf'):
         raise Exception('Cannot perform reaching task with this controller.')
 
     # set arm specific parameters ------------
@@ -52,7 +53,8 @@ def Task(arm, controller_class, x_bias=0., y_bias=2., dist=.4,
                     for theta in np.linspace(0, np.pi*2, 9)][:-1]
     trajectory = np.ones((3*len(targets_x)+3, 2))*np.nan
 
-    for ii in range(0,len(targets_x)): 
+    start = 0 if sequence is None else int(sequence)
+    for ii in range(start,len(targets_x)): 
         trajectory[ii*3+1] = [0, y_bias]
         trajectory[ii*3+2] = [targets_x[ii], targets_y[ii]]
     trajectory[-2] = [0, y_bias]

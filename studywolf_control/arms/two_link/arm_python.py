@@ -33,7 +33,7 @@ class Arm(Arm2Base):
         self.K2 = self.m2 * self.l1 * self.l2
         self.K3 = 1/3. * self.m2 * self.l2**2.
         self.K4 = 1/2. * self.m2 * self.l1* self.l2
-                    
+            
         self.reset() # set to init_q and init_dq
 
     def apply_torque(self, u, dt=None):
@@ -47,13 +47,15 @@ class Arm(Arm2Base):
         M12 = (self.K3 + self.K4*C2)
         M21 = M12
         M22 = self.K3
-        H1 = -self.K2*S2*self.dq[0]*self.dq[1] - 1/2.*self.K2*S2*self.dq[1]**2.
-        H2 = 1./2.*self.K2*S2*self.dq[0]**2.
+        H1 = (-self.K2*S2*self.dq[0]*self.dq[1] - 
+                1/2.0*self.K2*S2*self.dq[1]**2.0)
+        H2 = 1./2.*self.K2*S2*self.dq[0]**2.0
 
-        ddq1 = (H2*M11 - H1*M21 - M11*u[1]+ M21*u[0]) / (M12**2. - M11*M22)
-        ddq0 = (-H2 + u[1]- M22*ddq1) / M21
-        self.dq += np.array([ddq0, ddq1])*dt
-        self.q += self.dq*dt
+        ddq1 = ((H2*M11 - H1*M21 - M11*u[1] + M21*u[0]) /
+                (M12**2. - M11*M22))
+        ddq0 = (-H2 + u[1] - M22*ddq1) / M21
+        self.dq += np.array([ddq0, ddq1]) * dt
+        self.q += self.dq * dt
 
         # transfer to next time step 
         self.t += dt
