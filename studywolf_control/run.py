@@ -74,5 +74,6 @@ control_shell, runner_pars = task(arm, controller_class,
 # set up simulate and plot system
 runner = Runner(dt=dt, **runner_pars)
 runner.run(arm=arm, control_shell=control_shell, 
-        end_time=float(args['--end_time']))
+        end_time=float(args['--end_time']) \
+                if args['--end_time'] is not None else None)
 runner.show()
