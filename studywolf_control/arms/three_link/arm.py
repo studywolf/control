@@ -32,8 +32,6 @@ class Arm(ArmBase):
     def __init__(self, init_q=[np.pi/5.5, np.pi/1.7, np.pi/6.], 
             init_dq=[0.,0.,0.], **kwargs):
 
-        print kwargs
-
         self.DOF = 3
         ArmBase.__init__(self, init_q=init_q, init_dq=init_dq,
                          **kwargs)

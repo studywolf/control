@@ -21,8 +21,7 @@ import controllers.forcefield as forcefield
 import numpy as np
 
 def Task(arm, controller_class, x_bias=0., y_bias=2., dist=.4, 
-         additions=None, force=None, write_to_file=False, 
-         sequence=None, **kwargs):
+         force=None, write_to_file=False, sequence=None, **kwargs):
     """
     This task sets up the arm to reach to 8 targets center out from
     (x_bias, y_bias) at a distance=dist.

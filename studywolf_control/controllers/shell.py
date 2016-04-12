@@ -21,7 +21,7 @@ class Shell(object):
     """
     """
 
-    def __init__(self, controller, pen_down=False):
+    def __init__(self, controller, pen_down=False, **kwargs):
         """
         control Control instance: the controller to use 
         pen_down boolean: True if the end-effector is drawing
@@ -29,9 +29,10 @@ class Shell(object):
 
         self.controller = controller
         self.pen_down = pen_down 
+        self.kwargs = kwargs
 
     def control(self, arm): 
         """Call the controllers control function.
         """
-        self.u = self.controller.control(arm) 
+        self.u = self.controller.control(arm, **self.kwargs) 
         return self.u

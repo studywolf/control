@@ -2,7 +2,7 @@ import numpy as np
 
 def get_raw_data(input_name, writebox, spaces=False):
 
-    f = open('tasks/write/'+input_name+'.txt', 'r')
+    f = open('tasks/write_data/'+input_name+'.txt', 'r')
     row = f.readline()
 
     points = []

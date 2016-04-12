@@ -20,12 +20,12 @@ import controllers.osc as osc
 import controllers.trace as trace
 import controllers.forcefield as forcefield
 
-import tasks.write.read_path as rp
+import tasks.write_data.read_path as rp
 
 import numpy as np
 
 def Task(arm, controller_class, sequence=None, scale=None, 
-            additions=None, write_to_file=False, **kwargs):
+            force=None, write_to_file=False, **kwargs):
     """
     This task sets up the arm to write numbers inside 
     a specified area (-x_bias, x_bias, -y_bias, y_bias). 
@@ -42,7 +42,7 @@ def Task(arm, controller_class, sequence=None, scale=None,
         threshold = .01
         writebox = np.array([-.1, .1, .2, .25]) 
     elif arm.DOF == 3:
-        kp = 200 # position error gain on the PD controller
+        kp = 100 # position error gain on the PD controller
         threshold = .1
         writebox = np.array([-.25, .25, 1.65, 2.])
 
