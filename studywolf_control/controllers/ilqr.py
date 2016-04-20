@@ -23,9 +23,6 @@ import lqr as lqr
 import numpy as np
 from copy import copy
 
-from arms.two_link.arm import Arm as Arm2
-from arms.three_link.arm import Arm as Arm3
-
 class Control(lqr.Control):
     """
     A controller that implements iterative Linear Quadratic Gaussian control.
