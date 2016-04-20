@@ -65,7 +65,8 @@ class ArmBase:
         # cut off any singular values that could cause control problems
         for i in range(len(s)):
             s[i] = 0 if s[i] < self.singularity_thresh else 1./float(s[i])
-        Mx = np.dot(v, np.dot(np.diag(s), u.T))
+        # numpy returns U,S,V.T, so have to transpose both here 
+        Mx = np.dot(v.T, np.dot(np.diag(s), u.T))
 
         return Mx
 

@@ -17,7 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ..ArmBase import ArmBase
 import numpy as np
-import py2LinkArm
 
 class Arm2Base(ArmBase):
     """A wrapper around a MapleSim generated C simulation
