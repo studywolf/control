@@ -17,11 +17,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ..ArmBase import ArmBase
 
-import py3LinkArm 
-import py3LinkArm_damping
-import py3LinkArm_gravity
-import py3LinkArm_gravity_damping 
-import py3LinkArm_smallmass 
+# build the arm you would like to use by editing 
+# the setup file to import the desired model and running
+# python setup.py build_ext -i
+# name the resulting .so file to match and go
+from . import py3LinkArm 
+from . import py3LinkArm_damping
+from . import py3LinkArm_gravity
+from . import py3LinkArm_gravity_damping 
+from . import py3LinkArm_smallmass 
 
 import numpy as np
 
