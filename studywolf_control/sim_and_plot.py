@@ -52,7 +52,6 @@ class Runner:
         self.end_time = end_time
 
         self.arm = arm
-        print arm.DOF 
         if arm.DOF == 1:
             box = [-1, 1, -.25, 1.5]
         elif arm.DOF == 2:

@@ -53,7 +53,7 @@ class Shell(object):
         if self.postural == True:
             self.additions = self.controller.additions[0]
             self.controller.additions = []
-            print 'additional force removed...'
+            print('additional force removed...')
 
     def control(self, arm): 
         """Move to a series of targets.
@@ -67,14 +67,14 @@ class Shell(object):
                     self.target_index != len(self.target_list) - 1:
                 self.pen_down = not self.pen_down
                 self.controller.additions = [self.additions]
-                print 'additional force added...'
+                print('additional force added...')
 
-                print 'start recording'
+                print('start recording')
                 for recorder in self.controller.recorders:
                     recorder.start_recording = True
 
             elif (self.target_index % 3) == 1:
-                print 'start recording'
+                print('start recording')
                 for recorder in self.controller.recorders:
                     recorder.start_recording = True
 
@@ -97,13 +97,13 @@ class Shell(object):
                 self.run_timer2 = True
                 self.controller.block_output = True
 
-                print 'target shown...'
+                print('target shown...')
 
                 if self.postural == True:
                     self.controller.additions = []
-                    print 'additional force removed...'
+                    print('additional force removed...')
 
-                    print 'write to file'
+                    print('write to file')
                     for recorder in self.controller.recorders:
                         recorder.write_out = True
 
@@ -119,7 +119,7 @@ class Shell(object):
                 self.run_timer2 = False
                 self.controller.block_output = False
 
-                print 'start movement...'
+                print('start movement...')
 
         self.u = self.controller.control(arm)
 
@@ -134,7 +134,7 @@ class Shell(object):
         if self.postural is not True and \
                 self.target_index % 3 == 0 and \
                     self.target_index > 0: # 24 == 0
-            print 'write to file'
+            print('write to file')
             for recorder in self.controller.recorders:
                 recorder.write_out = True
 

@@ -62,7 +62,7 @@ controller_class = importlib.import_module(name=controller_name)
 # get the chosen task class
 task_name = 'tasks.%s'%args['TASK']
 task_module = importlib.import_module(name=task_name)
-print 'task: ', task_module
+print('task: ', task_module)
 task = task_module.Task
 
 # instantiate the controller for the chosen task

@@ -61,7 +61,7 @@ def Task(arm, controller_class, x_bias=0., y_bias=2., dist=.4,
     # generate control shell -----------------
     additions = []
     if force is not None:
-        print 'applying joint velocity based forcefield...'
+        print('applying joint velocity based forcefield...')
         additions.append(forcefield.Addition(scale=force))
         task = 'arm%i/forcefield'%arm.DOF
 
