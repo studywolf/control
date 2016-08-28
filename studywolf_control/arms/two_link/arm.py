@@ -19,6 +19,7 @@ from arm2base import Arm2Base
 import numpy as np
 import py2LinkArm
 
+
 class Arm(Arm2Base):
     """A wrapper around a MapleSim generated C simulation
     of a two link arm."""
@@ -28,32 +29,37 @@ class Arm(Arm2Base):
         Arm2Base.__init__(self, **kwargs)
 
         # stores information returned from maplesim
-        self.state = np.zeros(7) 
+        self.state = np.zeros(7)
         # maplesim arm simulation
         self.sim = py2LinkArm.pySim(dt=1e-5)
         self.sim.reset(self.state)
-        self.reset() # set to init_q and init_dq
- 
-    def apply_torque(self, u, dt):
+        self.reset()  # set to init_q and init_dq
+
+    def apply_torque(self, u, dt=None):
         """Takes in a torque and timestep and updates the
-        arm simulation accordingly. 
+        arm simulation accordingly.
 
         u np.array: the control signal to apply
         dt float: the timestep
         """
+        if dt is None:
+            dt = self.dt
         u = np.array(u, dtype='float')
-      
-        olddq = np.copy(self.dq)
+
         for i in range(int(np.ceil(dt/1e-5))):
             self.sim.step(self.state, u)
         self.update_state()
 
     def reset(self, q=[], dq=[]):
-        if isinstance(q, np.ndarray): q = q.tolist()
-        if isinstance(dq, np.ndarray): dq = dq.tolist()
+        if isinstance(q, np.ndarray):
+            q = q.tolist()
+        if isinstance(dq, np.ndarray):
+            dq = dq.tolist()
 
-        if q: assert len(q) == self.DOF
-        if dq: assert len(dq) == self.DOF
+        if q:
+            assert len(q) == self.DOF
+        if dq:
+            assert len(dq) == self.DOF
 
         state = np.zeros(self.DOF*2)
         state[::2] = self.init_q if not q else np.copy(q)
@@ -63,10 +69,10 @@ class Arm(Arm2Base):
         self.update_state()
 
     def update_state(self):
-        """Separate out the state variable into time, angles, 
+        """Separate out the state variable into time, angles,
         velocities, and accelerations."""
 
         self.t = self.state[0]
         self.q = self.state[1:3]
-        self.dq = self.state[3:5] 
-        self.ddq = self.state[5:] 
+        self.dq = self.state[3:5]
+        self.ddq = self.state[5:]

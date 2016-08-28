@@ -22,7 +22,7 @@ class Arm2Base(ArmBase):
     """A wrapper around a MapleSim generated C simulation
     of a two link arm."""
 
-    def __init__(self, init_q=[.75613, 1.8553], init_dq=[0.,0.], 
+    def __init__(self, init_q=[.75613, 1.8553], init_dq=[0.,0.],
                     l1=.31, l2=.27, **kwargs):
 
         self.DOF = 2
@@ -40,28 +40,28 @@ class Arm2Base(ArmBase):
         izz1=15.; izz2=8.
         # create mass matrices at COM for each link
         self.M1 = np.zeros((6,6))
-        self.M2 = np.zeros((6,6)) 
+        self.M2 = np.zeros((6,6))
         self.M1[0:3,0:3] = np.eye(3)*self.m1
         self.M1[3:,3:] = np.eye(3)*izz1
         self.M2[0:3,0:3] = np.eye(3)*self.m2
         self.M2[3:,3:] = np.eye(3)*izz2
 
         self.rest_angles = np.array([np.pi/4.0, np.pi/4.0])
-        
+
     def gen_jacCOM1(self, q=None):
         """Generates the Jacobian from the COM of the first
         link to the origin frame"""
         q = self.q if q is None else q
-    
+
         JCOM1 = np.zeros((6,2))
-        JCOM1[0,0] = self.l1 / 2. * -np.sin(q[0]) 
-        JCOM1[1,0] = self.l1 / 2. * np.cos(q[0]) 
+        JCOM1[0,0] = self.l1 / 2. * -np.sin(q[0])
+        JCOM1[1,0] = self.l1 / 2. * np.cos(q[0])
         JCOM1[5,0] = 1.0
 
         return JCOM1
 
     def gen_jacCOM2(self, q=None):
-        """Generates the Jacobian from the COM of the second 
+        """Generates the Jacobian from the COM of the second
         link to the origin frame"""
         q = self.q if q is None else q
 
@@ -85,11 +85,11 @@ class Arm2Base(ArmBase):
         JEE = np.zeros((2,2))
         # define column entries right to left
         JEE[0,1] = self.l2 * -np.sin(q[0]+q[1])
-        JEE[1,1] = self.l2 * np.cos(q[0]+q[1]) 
+        JEE[1,1] = self.l2 * np.cos(q[0]+q[1])
 
         JEE[0,0] = self.l1 * -np.sin(q[0]) + JEE[0,1]
         JEE[1,0] = self.l1 * np.cos(q[0]) + JEE[1,1]
-        
+
         return JEE
 
     def gen_Mq(self, q=None):
@@ -100,7 +100,7 @@ class Arm2Base(ArmBase):
         # generate the mass matrix in joint space
         Mq = np.dot(JCOM1.T, np.dot(self.M1, JCOM1)) + \
              np.dot(JCOM2.T, np.dot(self.M2, JCOM2))
- 
+
         return Mq
 
     def inv_kinematics(self, xy):
@@ -113,7 +113,7 @@ class Arm2Base(ArmBase):
             y = L[0] * np.sin(q[0]) + L[1] * np.sin(q[0] + q[1])
             return np.sqrt((x - xy[0])**2 + (y - xy[1])**2)
 
-        return scipy.optimize.minimize(fun=distance_to_target, x0=self.q, 
+        return scipy.optimize.minimize(fun=distance_to_target, x0=self.q,
                 args=([xy[0], xy[1]], self.L))['x']
 
     def position(self, q=None):

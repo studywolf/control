@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Usage:
     run ARM CONTROLLER TASK [options]
 
-Arguments: 
+Arguments:
     ARM         the arm to control
     CONTROLLER  the controller to use
     TASK        the task to perform
@@ -29,8 +29,8 @@ Options:
     --force=FORCEPARS           specify float strength of force to add
                                                   default is None
     --sequence=PHRASEPARS       specify sequence details for a given TASK
-    --scale=SCALEPARS           specify the scale of the DMP if TASK=write 
-    --write_to_file=WRITEPARS   specify boolean for writing to file, 
+    --scale=SCALEPARS           specify the scale of the DMP if TASK=write
+    --write_to_file=WRITEPARS   specify boolean for writing to file,
                                                   default is False
 '''
 
@@ -66,15 +66,15 @@ print('task: ', task_module)
 task = task_module.Task
 
 # instantiate the controller for the chosen task
-# and get the sim_and_plot parameters 
+# and get the sim_and_plot parameters
 control_shell, runner_pars = task(arm, controller_class,
-    sequence=args['--sequence'], scale=args['--scale'], 
-    force=float(args['--force']) if args['--force'] is not None else None, 
+    sequence=args['--sequence'], scale=args['--scale'],
+    force=float(args['--force']) if args['--force'] is not None else None,
     write_to_file=bool(args['--write_to_file']))
 
 # set up simulate and plot system
 runner = Runner(dt=dt, **runner_pars)
-runner.run(arm=arm, control_shell=control_shell, 
+runner.run(arm=arm, control_shell=control_shell,
         end_time=float(args['--end_time']) \
                 if args['--end_time'] is not None else None)
 runner.show()

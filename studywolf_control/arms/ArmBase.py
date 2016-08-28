@@ -16,11 +16,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 import numpy as np
 
+
 class ArmBase:
     """A base class for arm simulators"""
 
-    def __init__(self, init_q=None, init_dq=None, 
-            dt=1e-5, singularity_thresh=.00025, options=None):
+    def __init__(self, init_q=None, init_dq=None,
+                 dt=1e-5, singularity_thresh=.00025, options=None):
         """
         dt float: the timestep for simulation
         singularity_thresh float: the point at which to singular values
@@ -28,7 +29,7 @@ class ArmBase:
         """
 
         self.dt = dt
-        self.options= options 
+        self.options = options
         self.singularity_thresh = singularity_thresh
 
         self.init_q = np.zeros(self.DOF) if init_q is None else init_q
@@ -36,7 +37,7 @@ class ArmBase:
 
     def apply_torque(self, u, dt):
         """Takes in a torque and timestep and updates the
-        arm simulation accordingly. 
+        arm simulation accordingly.
 
         u np.array: the control signal to apply
         dt float: the timestep
@@ -54,18 +55,19 @@ class ArmBase:
 
     def gen_Mx(self, JEE=None, q=None, **kwargs):
         """Generate the mass matrix in operational space"""
-        if q is  None:
+        if q is None:
             q = self.q
 
         Mq = self.gen_Mq(q=q, **kwargs)
 
-        if JEE == None: JEE = self.gen_jacEE(q=q)
+        if JEE is None:
+            JEE = self.gen_jacEE(q=q)
         Mx_inv = np.dot(JEE, np.dot(np.linalg.inv(Mq), JEE.T))
-        u,s,v = np.linalg.svd(Mx_inv)
+        u, s, v = np.linalg.svd(Mx_inv)
         # cut off any singular values that could cause control problems
         for i in range(len(s)):
             s[i] = 0 if s[i] < self.singularity_thresh else 1./float(s[i])
-        # numpy returns U,S,V.T, so have to transpose both here 
+        # numpy returns U,S,V.T, so have to transpose both here
         Mx = np.dot(v.T, np.dot(np.diag(s), u.T))
 
         return Mx
@@ -73,21 +75,25 @@ class ArmBase:
     def position(self, q=None):
         """Compute x,y position of the hand
 
-        q list: a list of the joint angles, 
+        q list: a list of the joint angles,
                 if None use current system state
         """
         raise NotImplementedError
 
     def reset(self, q=[], dq=[]):
-        """Resets the state of the arm 
+        """Resets the state of the arm
         q list: a list of the joint angles
         dq list: a list of the joint velocities
         """
-        if isinstance(q, np.ndarray): q = q.tolist()
-        if isinstance(dq, np.ndarray): dq = dq.tolist()
+        if isinstance(q, np.ndarray):
+            q = q.tolist()
+        if isinstance(dq, np.ndarray):
+            dq = dq.tolist()
 
-        if q: assert len(q) == self.DOF
-        if dq: assert len(dq) == self.DOF
+        if q:
+            assert len(q) == self.DOF
+        if dq:
+            assert len(dq) == self.DOF
 
         self.q = np.copy(self.init_q) if not q else np.copy(q)
         self.dq = np.copy(self.init_dq) if not dq else np.copy(dq)
@@ -99,4 +105,4 @@ class ArmBase:
 
     @property
     def x(self):
-        return self.position()[:,-1]
+        return self.position()[:, -1]
