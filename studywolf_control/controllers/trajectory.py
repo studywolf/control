@@ -15,9 +15,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import gc 
-import osc 
-import shell
+from . import gc
+from . import osc
+from . import shell
 
 import numpy as np
 
@@ -27,7 +27,7 @@ class Shell(shell.Shell):
 
     def __init__(self, gain, tau, trajectory, threshold=.01, **kwargs):
         """
-        control Control instance: the controller to use 
+        control Control instance: the controller to use
         trajectory np.array: the time series of points to follow
                              [DOFs, time], with a column of None
                              wherever the pen should be lifted
@@ -42,20 +42,20 @@ class Shell(shell.Shell):
         self.not_at_start = True
         self.num_seq = 0
         self.tau = tau
-        self.threshold = threshold 
+        self.threshold = threshold
 
         self.gen_path(trajectory)
-        self.set_target() 
-    
+        self.set_target()
+
     def check_pen_up(self):
         """Check to see if the pen should be lifted.
         """
         raise NotImplementedError
 
-    def control(self, arm): 
-        """Apply a given control signal in (x,y) 
+    def control(self, arm):
+        """Apply a given control signal in (x,y)
            space to the arm"""
-           
+
         if self.controller.check_distance(arm) < self.threshold:
             self.not_at_start = False
 
@@ -66,9 +66,9 @@ class Shell(shell.Shell):
             self.set_target()
 
             # check to see if it's pen up time
-            if self.check_pen_up(): 
+            if self.check_pen_up():
                 self.pen_down = False
-                
+
                 if self.num_seq >= self.num_seqs - 1:
                     # if we're finished the last DMP
                     self.done = True
@@ -83,12 +83,12 @@ class Shell(shell.Shell):
                 self.pen_down = True
 
             if isinstance(self.controller, osc.Control):
-                pos = arm.x 
+                pos = arm.x
             elif isinstance(self.controller, gc.Control):
                 pos = arm.q
 
             pos_des = self.gain * (self.controller.target - pos)
-            self.u = self.controller.control(arm, pos_des) 
+            self.u = self.controller.control(arm, pos_des)
 
         return self.u
 

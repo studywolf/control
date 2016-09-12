@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from pydmps import dmp as DMP
 from pydmps import dmp_discrete as DMP_discrete
 from pydmps import dmp_rhythmic as DMP_rhythmic
-import trajectory
+from . import trajectory
 
 import numpy as np
 

@@ -14,18 +14,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
+import importlib
 
 from ..ArmBase import ArmBase
-
-# build the arm you would like to use by editing
-# the setup file to import the desired model and running
-# python setup.py build_ext -i
-# name the resulting .so file to match and go
-from . import py3LinkArm
-from . import py3LinkArm_damping
-from . import py3LinkArm_gravity
-from . import py3LinkArm_gravity_damping
-from . import py3LinkArm_smallmass
 
 import numpy as np
 
@@ -41,11 +32,14 @@ class Arm(ArmBase):
         ArmBase.__init__(self, init_q=init_q, init_dq=init_dq,
                          **kwargs)
 
-        pyArm = {None: py3LinkArm,
-                 'damping': py3LinkArm_damping,
-                 'gravity': py3LinkArm_gravity,
-                 'gravity_damping': py3LinkArm_gravity_damping,
-                 'smallmass': py3LinkArm_smallmass}[self.options]
+        # build the arm you would like to use by editing
+        # the setup file to import the desired model and running
+        # python setup.py build_ext -i
+        # name the resulting .so file to match and go
+        arm_import_name = 'arms.three_link.py3LinkArm'
+        arm_import_name = \
+            arm_import_name if self.options is None else '_' + self.options
+        pyArm = importlib.import_module(name=arm_import_name)
 
         # length of arm links
         l1 = 2.0

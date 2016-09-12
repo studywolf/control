@@ -24,13 +24,13 @@ import tasks.write_data.read_path as rp
 
 import numpy as np
 
-def Task(arm, controller_class, sequence=None, scale=None, 
+def Task(arm, controller_class, sequence=None, scale=None,
             force=None, write_to_file=False, **kwargs):
     """
-    This task sets up the arm to write numbers inside 
-    a specified area (-x_bias, x_bias, -y_bias, y_bias). 
+    This task sets up the arm to write numbers inside
+    a specified area (-x_bias, x_bias, -y_bias, y_bias).
     """
- 
+
     # check controller type ------------------
     controller_name = controller_class.__name__.split('.')[1]
     if controller_name not in ('dmp', 'trace'):
@@ -40,7 +40,7 @@ def Task(arm, controller_class, sequence=None, scale=None,
     if arm.DOF == 2:
         kp = 20 # position error gain on the PD controller
         threshold = .01
-        writebox = np.array([-.1, .1, .2, .25]) 
+        writebox = np.array([-.1, .1, .2, .25])
     elif arm.DOF == 3:
         kp = 100 # position error gain on the PD controller
         threshold = .1
@@ -52,7 +52,7 @@ def Task(arm, controller_class, sequence=None, scale=None,
 
     if scale is None:
         scale = [1.0] * len(sequence)
-    else: 
+    else:
         scale = [float(c) for c in scale]
 
     trajectory = rp.get_sequence(sequence, writebox, spaces=True)
@@ -60,13 +60,13 @@ def Task(arm, controller_class, sequence=None, scale=None,
     # generate control shell -----------------
     additions = []
     if force is not None:
-        print 'applying joint velocity based forcefield...'
+        print('applying joint velocity based forcefield...')
         additions.append(forcefield.Addition(scale=force))
         task = 'arm%i/forcefield'%arm.DOF
 
     control_pars = {'additions':additions,
                     'gain':1000, # pd gain for trajectory following
-                    'pen_down':False, 
+                    'pen_down':False,
                     'threshold':threshold,
                     'trajectory':trajectory.T}
 
@@ -80,12 +80,12 @@ def Task(arm, controller_class, sequence=None, scale=None,
         control_pars['tau'] = .1 # how fast the trajectory rolls out
     elif controller_name == 'trace':
         control_pars['tau'] = .005 # how fast the trajectory rolls out
-    
-    print 'Using operational space controller...'
-    controller = osc.Control(kp=kp, kv=np.sqrt(kp), 
+
+    print('Using operational space controller...')
+    controller = osc.Control(kp=kp, kv=np.sqrt(kp),
             task = 'arm%i/write'%arm.DOF,
             write_to_file=write_to_file)
-    control_shell = controller_class.Shell(controller=controller, **control_pars) 
+    control_shell = controller_class.Shell(controller=controller, **control_pars)
 
     # generate runner parameters -----------
     runner_pars = {'infinite_trail':True,
