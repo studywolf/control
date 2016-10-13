@@ -24,7 +24,7 @@ class Control(object):
     def __init__(self, kp=10, kv=np.sqrt(10),
                     additions=[], task='', write_to_file=False):
         """
-        additions list: list of Addition classes to append to 
+        additions list: list of Addition classes to append to
                         the outgoing control signal
         kp float: the position error term gain value
         kv float: the velocity error term gain value
@@ -36,7 +36,8 @@ class Control(object):
         self.kp = kp
         self.kv = kv
         self.task = task
-     
+        self.target = None
+
         self.write_to_file = write_to_file
         self.recorders = []
 
@@ -44,7 +45,7 @@ class Control(object):
         """Checks the distance to target"""
         return np.sum(abs(arm.x - self.target)) + np.sum(abs(arm.dq))
 
-    def control(self): 
+    def control(self):
         """Generates a control signal to apply to the arm"""
         raise NotImplementedError
 

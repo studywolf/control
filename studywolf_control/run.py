@@ -42,7 +42,7 @@ import importlib
 args = docopt(__doc__)
 
 dt = 1e-2 if args['CONTROLLER'] == 'ilqr' else 1e-3
-dt = dt if args.get('--dt',None) is None else float(args['--dt'])
+dt = dt if args.get('--dt', None) is None else float(args['--dt'])
 
 # get and initialize the arm
 if args['ARM'][:4] == 'arm1':
@@ -51,23 +51,24 @@ if args['ARM'][:4] == 'arm2':
     subfolder = 'two_link'
 elif args['ARM'][:4] == 'arm3':
     subfolder = 'three_link'
-arm_name = 'arms.%s.%s'%(subfolder, 'arm'+args['ARM'][4:])
+arm_name = 'arms.%s.%s' % (subfolder, 'arm'+args['ARM'][4:])
 arm_module = importlib.import_module(name=arm_name)
 arm = arm_module.Arm(dt=dt)
 
 # get the chosen controller class
-controller_name = 'controllers.%s'%args['CONTROLLER'].lower()
+controller_name = 'controllers.%s' % args['CONTROLLER'].lower()
 controller_class = importlib.import_module(name=controller_name)
 
 # get the chosen task class
-task_name = 'tasks.%s'%args['TASK']
+task_name = 'tasks.%s' % args['TASK']
 task_module = importlib.import_module(name=task_name)
 print('task: ', task_module)
 task = task_module.Task
 
 # instantiate the controller for the chosen task
 # and get the sim_and_plot parameters
-control_shell, runner_pars = task(arm, controller_class,
+control_shell, runner_pars = task(
+    arm, controller_class,
     sequence=args['--sequence'], scale=args['--scale'],
     force=float(args['--force']) if args['--force'] is not None else None,
     write_to_file=bool(args['--write_to_file']))
@@ -75,6 +76,6 @@ control_shell, runner_pars = task(arm, controller_class,
 # set up simulate and plot system
 runner = Runner(dt=dt, **runner_pars)
 runner.run(arm=arm, control_shell=control_shell,
-        end_time=float(args['--end_time']) \
-                if args['--end_time'] is not None else None)
+           end_time=(float(args['--end_time'])
+                     if args['--end_time'] is not None else None))
 runner.show()

@@ -15,24 +15,21 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import numpy as np
 
 class Shell(object):
-    """
-    """
 
     def __init__(self, controller, pen_down=False, **kwargs):
         """
-        control Control instance: the controller to use 
+        control Control instance: the controller to use
         pen_down boolean: True if the end-effector is drawing
         """
 
         self.controller = controller
-        self.pen_down = pen_down 
+        self.pen_down = pen_down
         self.kwargs = kwargs
 
-    def control(self, arm): 
+    def control(self, arm):
         """Call the controllers control function.
         """
-        self.u = self.controller.control(arm, **self.kwargs) 
+        self.u = self.controller.control(arm, **self.kwargs)
         return self.u

@@ -15,17 +15,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import controllers.dmp as dmp
 import controllers.osc as osc
-import controllers.trace as trace
 import controllers.forcefield as forcefield
 
 import tasks.write_data.read_path as rp
 
 import numpy as np
 
+
 def Task(arm, controller_class, sequence=None, scale=None,
-            force=None, write_to_file=False, **kwargs):
+         force=None, write_to_file=False, **kwargs):
     """
     This task sets up the arm to write numbers inside
     a specified area (-x_bias, x_bias, -y_bias, y_bias).
@@ -38,12 +37,12 @@ def Task(arm, controller_class, sequence=None, scale=None,
 
     # set arm specific parameters ------------
     if arm.DOF == 2:
-        kp = 20 # position error gain on the PD controller
+        kp = 20  # position error gain on the PD controller
         threshold = .01
         writebox = np.array([-.1, .1, .2, .25])
     elif arm.DOF == 3:
-        kp = 100 # position error gain on the PD controller
-        threshold = .1
+        kp = 100  # position error gain on the PD controller
+        threshold = .05
         writebox = np.array([-.25, .25, 1.65, 2.])
 
     # generate the path to follow -------------
@@ -62,34 +61,33 @@ def Task(arm, controller_class, sequence=None, scale=None,
     if force is not None:
         print('applying joint velocity based forcefield...')
         additions.append(forcefield.Addition(scale=force))
-        task = 'arm%i/forcefield'%arm.DOF
 
-    control_pars = {'additions':additions,
-                    'gain':1000, # pd gain for trajectory following
-                    'pen_down':False,
-                    'threshold':threshold,
-                    'trajectory':trajectory.T}
+    control_pars = {'additions': additions,
+                    'gain': 1000,  # pd gain for trajectory following
+                    'pen_down': False,
+                    'threshold': threshold,
+                    'trajectory': trajectory.T}
 
     controller_name = controller_class.__name__.split('.')[1]
     if controller_name == 'dmp':
         # number of goals is the number of (NANs - 1) * number of DMPs
-        num_goals = (np.sum(trajectory[:,0] != trajectory[:,0]) - 1) * 2
+        num_goals = (np.sum(trajectory[:, 0] != trajectory[:, 0]) - 1) * 2
         # respecify goals for spatial scaling by changing add_to_goals
         control_pars['add_to_goals'] = [0]*num_goals
-        control_pars['bfs'] = 1000 # number of basis function per DMP
-        control_pars['tau'] = .1 # how fast the trajectory rolls out
+        control_pars['bfs'] = 1000  # number of basis function per DMP
+        control_pars['tau'] = .1  # how fast the trajectory rolls out
     elif controller_name == 'trace':
-        control_pars['tau'] = .005 # how fast the trajectory rolls out
+        control_pars['tau'] = .005  # how fast the trajectory rolls out
 
     print('Using operational space controller...')
     controller = osc.Control(kp=kp, kv=np.sqrt(kp),
-            task = 'arm%i/write'%arm.DOF,
-            write_to_file=write_to_file)
-    control_shell = controller_class.Shell(controller=controller, **control_pars)
+                             write_to_file=write_to_file)
+    control_shell = controller_class.Shell(controller=controller,
+                                           **control_pars)
 
     # generate runner parameters -----------
-    runner_pars = {'infinite_trail':True,
-                   'title':'Task: Writing numbers',
-                   'trajectory':trajectory}
+    runner_pars = {'infinite_trail': True,
+                   'title': 'Task: Writing numbers',
+                   'trajectory': trajectory}
 
     return (control_shell, runner_pars)

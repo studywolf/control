@@ -43,6 +43,7 @@ class Shell(shell.Shell):
         self.num_seq = 0
         self.tau = tau
         self.threshold = threshold
+        self.x = None
 
         self.gen_path(trajectory)
         self.set_target()
@@ -55,6 +56,8 @@ class Shell(shell.Shell):
     def control(self, arm):
         """Apply a given control signal in (x,y)
            space to the arm"""
+
+        self.x = np.copy(arm.x)
 
         if self.controller.check_distance(arm) < self.threshold:
             self.not_at_start = False

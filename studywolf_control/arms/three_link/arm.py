@@ -37,8 +37,9 @@ class Arm(ArmBase):
         # python setup.py build_ext -i
         # name the resulting .so file to match and go
         arm_import_name = 'arms.three_link.py3LinkArm'
-        arm_import_name = \
-            arm_import_name if self.options is None else '_' + self.options
+        arm_import_name = (arm_import_name if self.options is None
+                           else '_' + self.options)
+        print(arm_import_name)
         pyArm = importlib.import_module(name=arm_import_name)
 
         # length of arm links
