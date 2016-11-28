@@ -20,7 +20,7 @@ import controllers.forcefield as forcefield
 
 import numpy as np
 
-def Task(arm, controller_class, x_bias=0., y_bias=2., dist=.4, 
+def Task(arm, controller_class, x_bias=0., y_bias=2., dist=.4,
          force=None, write_to_file=False, sequence=None, **kwargs):
     """
     This task sets up the arm to reach to 8 targets center out from
@@ -36,10 +36,10 @@ def Task(arm, controller_class, x_bias=0., y_bias=2., dist=.4,
     if arm.DOF == 2:
         dist = .075
         kp = 20 # position error gain on the PD controller
-        threshold = .01 
+        threshold = .01
         y_bias = .35
     elif arm.DOF == 3:
-        kp = 100 
+        kp = 100
         threshold = .02
     else:
         raise Exception('Cannot perform reaching task with this arm.')
@@ -53,7 +53,7 @@ def Task(arm, controller_class, x_bias=0., y_bias=2., dist=.4,
     trajectory = np.ones((3*len(targets_x)+3, 2))*np.nan
 
     start = 0 if sequence is None else int(sequence)
-    for ii in range(start,len(targets_x)): 
+    for ii in range(start,len(targets_x)):
         trajectory[ii*3+1] = [0, y_bias]
         trajectory[ii*3+2] = [targets_x[ii], targets_y[ii]]
     trajectory[-2] = [0, y_bias]
@@ -77,7 +77,7 @@ def Task(arm, controller_class, x_bias=0., y_bias=2., dist=.4,
     control_shell = target_list.Shell(controller=controller, **control_pars)
 
     # generate runner parameters -----------
-    runner_pars = {'infinite_trail':True, 
+    runner_pars = {'infinite_trail':True,
                    'title':'Task: Reaching',
                    'trajectory':trajectory}
 

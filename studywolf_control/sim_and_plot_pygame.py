@@ -32,9 +32,9 @@ class ArmPart:
         """
         Rotates and re-centers the arm segment.
         """
-        self.rotation = rotation 
+        self.rotation = rotation
 
-        # rotate our image 
+        # rotate our image
         image = pygame.transform.rotozoom(self.base, np.degrees(rotation), 1)
         # reset the center
         rect = image.get_rect()
@@ -54,8 +54,8 @@ class Runner:
     """
     A class for drawing the arm simulation using PyGame
     """
-    def __init__(self, title='', dt=1e-4, control_steps=10, 
-                       display_steps=100, t_target=1.0, 
+    def __init__(self, title='', dt=1e-4, control_steps=10,
+                       display_steps=100, t_target=1.0,
                        box=[-1,1,-1,1], rotate=0.0,
                        control_type='', trajectory=None,
                        infinite_trail=False, mouse_control=False):
@@ -65,8 +65,8 @@ class Runner:
         self.target_steps = int(t_target/float(dt*display_steps))
         self.trajectory = trajectory
 
-        self.box = box 
-        self.control_type = control_type 
+        self.box = box
+        self.control_type = control_type
         self.infinite_trail = infinite_trail
         self.mouse_control = mouse_control
         self.rotate = rotate
@@ -85,12 +85,12 @@ class Runner:
         self.arm = arm
         self.shell = control_shell
 
-        # load arm images 
-        arm1 = ArmPart('img/three_link/svgupperarm2.png', 
+        # load arm images
+        arm1 = ArmPart('img/three_link/svgupperarm2.png',
                         scale = .7)
-        arm2 = ArmPart('img/three_link/svgforearm2.png', 
+        arm2 = ArmPart('img/three_link/svgforearm2.png',
                         scale = .8)
-        arm3 = ArmPart('img/three_link/svghand2.png', 
+        arm3 = ArmPart('img/three_link/svghand2.png',
                         scale= 1)
 
         scaling_term = np.ones(2) * 105
@@ -132,7 +132,7 @@ class Runner:
         def pen_down1():
             self.pen_lifted = False
             x,y = self.arm.position()
-            x = int( x[-1] * scaling_term[0] + self.base_offset[0]) 
+            x = int( x[-1] * scaling_term[0] + self.base_offset[0])
             y = int(-y[-1] * scaling_term[1] + self.base_offset[1])
             self.trail_data.append([[x,y],[x,y]])
 
@@ -148,15 +148,15 @@ class Runner:
         background = pygame.image.load('img/whiteboard.jpg')
 
         # enter simulation / plotting loop
-        while True: 
+        while True:
 
             self.display.fill(white)
 
             self.target = self.shell.controller.target * np.array([1, -1]) * \
                             scaling_term + self.base_offset
-           
+
             # before drawing
-            for j in range(self.display_steps):            
+            for j in range(self.display_steps):
                 # update control signal
                 if self.sim_step % self.control_steps == 0 or \
                     'tau' not in locals():
@@ -168,8 +168,8 @@ class Runner:
 
             # get (x,y) positions of the joints
             x,y = self.arm.position()
-            points = [(int(a * scaling_term[0] + self.base_offset[0]), 
-                       int(-b * scaling_term[1] + self.base_offset[1])) 
+            points = [(int(a * scaling_term[0] + self.base_offset[0]),
+                       int(-b * scaling_term[1] + self.base_offset[1]))
                        for a,b in zip(x,y)]
 
             arm1_image, arm1_rect = arm1.rotate(self.arm.q[0])
@@ -206,7 +206,7 @@ class Runner:
                 self.pen_lifted = True
                 self.trail_index += 1
 
-            # draw things! 
+            # draw things!
             self.display.blit(background, (0,0)) # draw on the background
 
             for trail in self.trail_data:
@@ -217,11 +217,11 @@ class Runner:
             self.display.blit(arm2_image, arm2_rect)
             self.display.blit(arm3_image, arm3_rect)
 
-            # draw original arm lines 
+            # draw original arm lines
             # pygame.draw.lines(self.display, arm_color, False, points, 18)
 
             # draw transparent arm lines
-            self.display.blit(line_upperarm, rect_upperarm) 
+            self.display.blit(line_upperarm, rect_upperarm)
             self.display.blit(line_forearm, rect_forearm)
             self.display.blit(line_hand, rect_hand)
 
@@ -229,7 +229,7 @@ class Runner:
             pygame.draw.circle(self.display, black, points[0], 30)
             pygame.draw.circle(self.display, arm_color, points[0], 12)
 
-            # draw circles at elbow 
+            # draw circles at elbow
             pygame.draw.circle(self.display, black, points[1], 20)
             pygame.draw.circle(self.display, arm_color, points[1], 7)
 
@@ -247,16 +247,16 @@ class Runner:
             # put a border on it
             pygame.draw.rect(magnify, black, (2.5, 2.5, 195, 195), 1)
             # now we need to rescale the trajectory and targets
-            # using the first target position, which I know to be the 
+            # using the first target position, which I know to be the
             # desired center of the magnify area
             for trail in self.trail_data:
-                pygame.draw.aalines(magnify, black, False, 
+                pygame.draw.aalines(magnify, black, False,
                         np.asarray(trail) * magnify_scale - magnify_offset, True)
-            pygame.draw.circle(magnify, red, 
-                    np.array(self.target * magnify_scale - magnify_offset, 
+            pygame.draw.circle(magnify, red,
+                    np.array(self.target * magnify_scale - magnify_offset,
                         dtype=int), 5)
 
-            # now draw the target and hand line 
+            # now draw the target and hand line
             self.display.blit(magnify, (32, 45))
 
             # check for quit
