@@ -81,9 +81,9 @@ class Shell(trajectory.Shell):
             seq = trajectory[:, breaks[ii]+1:breaks[ii+1]]
 
             if self.pattern == 'discrete':
-                dmps = DMP_discrete.DMPs_discrete(dmps=num_DOF, bfs=self.bfs)
+                dmps = DMP_discrete.DMPs_discrete(n_dmps=num_DOF, n_bfs=self.bfs)
             elif self.pattern == 'rhythmic':
-                dmps = DMP_rhythmic.DMPs_rhythmic(dmps=num_DOF, bfs=self.bfs)
+                dmps = DMP_rhythmic.DMPs_rhythmic(n_dmps=num_DOF, n_bfs=self.bfs)
             else:
                 raise Exception('Invalid pattern type specified. Valid choices \
                                  are discrete or rhythmic.')
