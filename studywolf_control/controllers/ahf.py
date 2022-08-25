@@ -40,7 +40,7 @@ class Control(control.Control):
         # this code goes into the weights folder, finds the most 
         # recent trial, and loads up the weights
         files = sorted(glob.glob('controllers/weights/rnn*'))
-        print 'loading weights from %s'%files[-1]
+        print('loading weights from %s'%files[-1])
         W = np.load(files[-1])['arr_0']
         num_states = 4
         self.rnn = RNNet(shape=[num_states * 2, 32, 32, num_states, num_states], 

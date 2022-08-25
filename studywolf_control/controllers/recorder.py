@@ -32,7 +32,7 @@ class Recorder():
             self.signal.append(x.copy())
 
         if self.write_out == True:
-            print 'saving'
+            print('saving')
             np.savez_compressed(
                     'data/%s/%s/%s%.3i'%(self.task, \
                             self.controller, self.name, self.count),

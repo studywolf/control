@@ -72,7 +72,7 @@ def Task(arm, controller_type, x_bias=0., y_bias=2., dist=.4,
     # generate control shell -----------------
     additions = []
     force_index = np.random.randint(8) if force_index is None else force_index
-    print 'applying force %i...'%force_index
+    print('applying force %i...'%force_index)
     additions.append(Addition(index=force_index))
     task = 'arm%i/postural%i'%(arm.DOF, force_index)
 

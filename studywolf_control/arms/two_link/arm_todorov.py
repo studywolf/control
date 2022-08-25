@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from arm2base import Arm2Base
+from .arm2base import Arm2Base
 import numpy as np
 
 class Arm(Arm2Base):
@@ -48,20 +48,20 @@ class Arm(Arm2Base):
         a1 = i[0] + i[1] + m[1]*l[0]**2
         a2 = m[1]*l[0]*s[1]
         a3 = i[1]
-        I = np.array([[a1 + 2*a2*np.cos(q[1]), a3 + a2*np.cos(q[1])],
-                      [a3 + a2*np.cos(q[1]), a3]])
+        I = np.array([[a1 + 2*a2*np.cos(self.q[1]), a3 + a2*np.cos(self.q[1])],
+                      [a3 + a2*np.cos(self.q[1]), a3]])
 
         # centripital and Coriolis effects
-        C = np.array([[-dq[1] * (2 * dq[0] + dq[1])],
-                      [dq[0]]]) * a2 * np.sin(q[1])
+        C = np.array([-self.dq[1] * (2 * self.dq[0] + self.dq[1]),
+                      self.dq[0]]) * a2 * np.sin(self.q[1])
 
         # joint friction
         B = np.array([[.05, .025],
                       [.025, .05]])
 
         # calculate forward dynamics
-        ddq = np.linalg.pinv(I) * (u - C - np.dot(B, dq))
-
+        ddq = np.dot(np.linalg.pinv(I) , (u - C - np.dot(B, self.dq)))
+        
         # transfer to next time step 
         self.q += dt * self.dq
         self.dq += dt * ddq
